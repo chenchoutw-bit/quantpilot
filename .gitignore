@@ -1,0 +1,26 @@
+# 忽略不需要的文件
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+*.json
+!package.json
+!.gitkeep
+
+# 忽略临时文件
+*.tmp
+*.bak
+.cache/
+
+# 忽略大文件
+.vscode/
+.idea/
+
+# 只保留HTML文件和必要资源
+*.html
+*.css
+*.js
+*.png
+*.jpg
+*.svg
+*.ico
