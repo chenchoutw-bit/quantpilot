@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script id="market-data-inject">window.__MARKET_DATA__={"timestamp":"2026-04-08T23:02:33.938147","isHoliday":false,"commodities":{"WTI":{"key":"WTI","name":"WTI","price":94.735,"change":-0.375,"prevClose":95.11,"changePct":-0.39,"source":"Sina Finance","isLastClose":false},"BRENT":{"key":"BRENT","name":"BRENT","price":94.632,"change":0.192,"prevClose":94.44,"changePct":0.2,"source":"Sina Finance","isLastClose":false},"GLD_PRICE":{"key":"GLD_PRICE","name":"GLD_PRICE","price":4768.001,"change":-3.199,"prevClose":4771.2,"changePct":-0.07,"source":"Sina Finance","isLastClose":false},"SLV_PRICE":{"key":"SLV_PRICE","name":"SLV_PRICE","price":75.037,"change":-0.153,"prevClose":75.19,"changePct":-0.2,"source":"Sina Finance","isLastClose":false},"NG":{"key":"NG","name":"NG","price":2.747,"change":-0.003,"prevClose":2.75,"changePct":-0.11,"source":"Sina Finance","isLastClose":false}},"indices":{"SPX":{"key":"SPX","name":"S&P 500","price":6757.99,"prevClose":6616.85,"change":141.14,"changePct":2.13,"source":"Tencent Finance","isLastClose":false},"CSI300":{"key":"CSI300","name":"CSI 300","price":4595.56,"prevClose":4440.62,"change":154.94,"changePct":3.49,"source":"Tencent Finance","isLastClose":false},"NDX":{"key":"NDX","name":"NASDAQ 100","price":24840.92,"prevClose":24202.37,"change":638.55,"changePct":2.64,"source":"Tencent Finance","isLastClose":false},"HSI":{"key":"HSI","name":"Hang Seng","price":25893.02,"prevClose":25116.53,"change":776.49,"changePct":3.09,"source":"Tencent Finance","isLastClose":false}},"macro":{"TNX":{"key":"TNX","name":"US 10Y Bond","price":0.0435,"source":"Fallback","type":"bond"},"VIX":{"key":"VIX","name":"VIX","price":27.04,"source":"Fallback","type":"index"}},"forex":{},"status":{"ok":true,"sources":["Sina Finance","Tencent Finance"],"note":"实时行情"}};</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global QuantPilot · 投研工作台</title>
+<style>
+  :root {
+    --bg: #06090f;
+    --bg2: #0a0f18;
+    --bg3: #0f1623;
+    --card: #131d2e;
+    --card2: #182236;
+    --border: #1e2d45;
+    --accent: #3b82f6;
+    --accent2: #6366f1;
+    --accent3: #8b5cf6;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --text2: #8ba3bf;
+    --text3: #4a6080;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(180deg, #0a0f18 0%, transparent 100%);
+    padding: 20px 0 40px;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 0 30px rgba(59,130,246,0.3);
+  }
+
+  .logo-text h1 {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo-text p {
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .status-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  .status-chip .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ===== 市场快讯条 ===== */
+  .ticker-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .ticker-bar::-webkit-scrollbar { height: 4px; }
+  .ticker-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .ticker-label {
+    font-size: 11px;
+    color: var(--text3);
+    padding-right: 8px;
+    border-right: 1px solid var(--border);
+  }
+
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    border-right: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .ticker-item .name { color: var(--text2); }
+  .ticker-item .val { font-weight: 600; color: var(--text); }
+  .ticker-item .chg { font-size: 12px; }
+  .ticker-item .chg.up { color: var(--red); }
+  .ticker-item .chg.down { color: var(--green); }
+  .ticker-item .source { font-size: 10px; color: var(--text3); }
+
+  /* ===== 数据状态面板 ===== */
+  .data-status-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .data-source {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg3);
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .data-source .name { color: var(--text2); }
+  .data-source .status { font-weight: 600; }
+  .data-source .status.ok { color: var(--green); }
+  .data-source .status.fail { color: var(--red); }
+  .data-source .status.loading { color: var(--gold); }
+
+  /* ===== 主网格 ===== */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+  }
+
+  @media (max-width: 1200px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== 工具卡片 ===== */
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+
+  .tool-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tool-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(59,130,246,0.4);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+
+  .tool-card .card-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .tool-card .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .tool-card .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .tool-card .card-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  .tool-card .card-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  .tool-card .card-badge {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .badge-live {
+    background: rgba(16,185,129,0.15);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+
+  .badge-new {
+    background: rgba(245,158,11,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+
+  /* ===== 基本面数据面板 ===== */
+  .financial-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-header .update-info {
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .stock-table {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .stock-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--bg2);
+    color: var(--text3);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stock-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .stock-table tr:last-child td { border-bottom: none; }
+
+  .stock-table tr:hover td { background: var(--bg3); }
+
+  .stock-name { font-weight: 600; }
+  .stock-code { font-size: 10px; color: var(--text3); }
+
+  .fin-val { font-weight: 600; }
+  .fin-val.highlight { color: var(--accent); }
+  .fin-val.green { color: var(--green); }
+
+  .industry-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--bg3);
+    border-radius: 4px;
+    color: var(--text3);
+  }
+
+  /* ===== 快捷入口 ===== */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .quick-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .quick-btn:hover {
+    background: var(--card2);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .quick-btn .icon { font-size: 20px; margin-bottom: 6px; }
+  .quick-btn .label { font-size: 12px; color: var(--text2); }
+
+  /* ===== 模态框 ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    width: 95vw;
+    height: 90vh;
+    background: var(--bg2);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h3 { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+
+  .modal-close {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .modal-close:hover { background: rgba(239,68,68,0.2); color: var(--red); }
+
+  .modal-iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+    background: var(--bg);
+  }
+
+  /* ===== 加载动画 ===== */
+  .loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    background-size: 200%;
+    animation: loading 1s linear infinite;
+  }
+
+  @keyframes loading {
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
+  }
+
+  /* ===== 刷新按钮 ===== */
+  .refresh-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover { background: var(--accent2); transform: scale(1.05); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .refresh-btn .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  footer {
+    text-align: center;
+    padding: 40px 0 30px;
+    color: var(--text3);
+    font-size: 12px;
+  }
+
+  footer span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-icon">📊</div>
+        <div class="logo-text">
+          <h1>Global QuantPilot</h1>
+          <p>INVESTMENT RESEARCH PLATFORM</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-chip"><div class="dot"></div>系统运行中</div>
+        <div class="status-chip" id="clock">--:--:--</div>
+        <div class="status-chip">📅 <span id="date"></span></div>
+        <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">
+          <span>🔄</span> 刷新数据
+        </button>
+      </div>
+    </div>
+
+    <!-- TICKER BAR -->
+    <div class="ticker-bar" id="tickerBar">
+      <span class="ticker-label">📡 市场数据</span>
+      <span style="color:var(--text3);font-size:12px">加载中...</span>
+    </div>
+  </header>
+
+  <!-- DATA STATUS -->
+  <div class="data-status-panel" id="dataStatusPanel">
+    <div class="data-source">
+      <span class="name">新浪财经</span>
+      <span class="status loading" id="sinaStatus">⏳</span>
+    </div>
+    <div class="data-source">
+      <span class="name">腾讯财经</span>
+      <span class="status loading" id="tencentStatus">⏳</span>
+    </div>
+      <div class="data-source">
+      <span class="name">东方财富(VIX)</span>
+      <span class="status loading" id="emStatus">⏳</span>
+    </div>
+    <div class="data-source">
+      <span class="name">iFinD基本面</span>
+      <span class="status loading" id="ifindStatus">⏳</span>
+    </div>
+    <div class="data-source">
+      <span class="name">数据更新</span>
+      <span class="status" id="lastUpdate">--</span>
+    </div>
+    <div class="data-source">
+      <span class="name">数据质量</span>
+      <span class="status ok" id="dataQuality">95%</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-grid">
+    <div class="left-col">
+      <!-- 快捷操作 -->
+      <div class="section-title">⚡ 快捷入口</div>
+      <div class="quick-actions">
+        <div class="quick-btn" onclick="openTool('Global QuantPilot 2.0.html')">
+          <div class="icon">☀️</div>
+          <div class="label">今日晨报</div>
+        </div>
+        <div class="quick-btn" onclick="openTool('Portfolio Doctor.html')">
+          <div class="icon">🏥</div>
+          <div class="label">组合诊断</div>
+        </div>
+        <div class="quick-btn" onclick="openTool('Smart Screener.html')">
+          <div class="icon">🔍</div>
+          <div class="label">智能选股</div>
+        </div>
+        <div class="quick-btn" onclick="openTool('Event Impact Analyzer.html')">
+          <div class="icon">⚡</div>
+          <div class="label">事件分析</div>
+        </div>
+      </div>
+
+      <!-- 工具矩阵 -->
+      <div class="section-title">🛠 投研工具</div>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="openTool('Portfolio Doctor.html')">
+          <div class="card-accent" style="background:linear-gradient(90deg,#10b981,#3b82f6)"></div>
+          <div class="card-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(59,130,246,0.2))">🏥</div>
+          <div class="card-title">Portfolio Doctor</div>
+          <div class="card-sub">组合诊断室</div>
+          <div class="card-desc">360°持仓风险诊断、相关性分析、夏普比率、最大回撤</div>
+          <div class="card-badge badge-live">● LIVE</div>
+        </div>
+
+        <div class="tool-card" onclick="openTool('Smart Screener.html')">
+          <div class="card-accent" style="background:linear-gradient(90deg,#f59e0b,#ef4444)"></div>
+          <div class="card-icon" style="background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.2))">🔍</div>
+          <div class="card-title">Smart Screener</div>
+          <div class="card-sub">智能选股器</div>
+          <div class="card-desc">五维因子选股、PE/PB/ROE综合评分、技术信号</div>
+          <div class="card-badge badge-live">● LIVE</div>
+        </div>
+
+        <div class="tool-card" onclick="openTool('Event Impact Analyzer.html')">
+          <div class="card-accent" style="background:linear-gradient(90deg,#8b5cf6,#ec4899)"></div>
+          <div class="card-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(236,72,153,0.2))">⚡</div>
+          <div class="card-title">Event Impact Analyzer</div>
+          <div class="card-sub">事件影响分析</div>
+          <div class="card-desc">宏观事件分析、利好利空传导链、时间维度</div>
+          <div class="card-badge badge-new">✦ NEW</div>
+        </div>
+
+        <div class="tool-card" onclick="openTool('Global QuantPilot 2.0.html')">
+          <div class="card-accent" style="background:linear-gradient(90deg,#6366f1,#3b82f6)"></div>
+          <div class="card-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(59,130,246,0.2))">🌐</div>
+          <div class="card-title">Global QuantPilot 2.0</div>
+          <div class="card-sub">主动晨会系统</div>
+          <div class="card-desc">6大AI研究员协作、多空辩论评分、资产配置</div>
+          <div class="card-badge badge-new">✦ 2.0</div>
+        </div>
+      </div>
+
+      <!-- 其他工具 -->
+      <div class="section-title">📊 分析工具</div>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="openTool('数字货币风控归因系统.html')">
+          <div class="card-accent" style="background:linear-gradient(90deg,#f59e0b,#f97316)"></div>
+          <div class="card-icon" style="background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(249,115,22,0.2))">💰</div>
+          <div class="card-title">数字货币风控</div>
+          <div class="card-sub">风控归因系统</div>
+          <div class="card-desc">Web3资产配置、期权策略、风险归因</div>
+        </div>
+
+        <div class="tool-card" onclick="openTool('War-Index-全天候看板.html')">
+          <div class="card-accent" style="background:linear-gradient(90deg,#ef4444,#dc2626)"></div>
+          <div class="card-icon" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(220,38,38,0.2))">⚔️</div>
+          <div class="card-title">War Index 全天一体化看板</div>
+          <div class="card-sub">地缘风险监控</div>
+          <div class="card-desc">战争指数评分、五大维度、全天候仓位管理</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧基本面数据 -->
+    <div class="right-col">
+      <div class="section-title">📈 上证50基本面</div>
+      <div class="financial-panel">
+        <div class="panel-header">
+          <h3>🏢 核心指标 <span style="font-size:11px;font-weight:400;color:var(--text3)">(iFinD实时)</span></h3>
+          <span class="update-info" id="finUpdateTime">加载中...</span>
+        </div>
+        <table class="stock-table">
+          <thead>
+            <tr>
+              <th>股票</th>
+              <th>行业</th>
+              <th>ROE</th>
+              <th>股息率</th>
+            </tr>
+          </thead>
+          <tbody id="finTableBody">
+            <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text3)">⏳ 加载基本面数据...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 <span>Global QuantPilot Capital</span> · AI-Powered Investment Intelligence</p>
+    <p style="margin-top:6px">数据来源: 新浪财经 · 腾讯财经 · 东方财富 · iFinD</p>
+  </footer>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="toolModal">
+  <div class="loading-bar" id="modalLoading" style="display:none"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">工具</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <iframe class="modal-iframe" id="modalIframe" src="about:blank"></iframe>
+  </div>
+</div>
+
+<script>
+// ===== 全局数据存储 =====
+let liveData = {
+  // 市场数据
+  wti: null, brent: null, gold: null, silver: null, ng: null,
+  spx: null, csi: null, ndx: null, vix: null, dxy: null, tnx: null,
+  // 基本面数据
+  financial: null
+};
+
+// ===== 时钟更新 =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN');
+  document.getElementById('date').textContent = `${now.getMonth()+1}月${now.getDate()}日`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ===== 数据源状态更新 =====
+function setSourceStatus(id, status, text) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + status;
+  el.textContent = text;
+}
+
+// ===== 新浪期货数据获取 =====
+async function sinaFuturesFetch(code) {
+  try {
+    const url = `https://qt.gtimg.cn/q=${code}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const text = await res.text();
+    // 过滤无效响应
+    if (text.includes('none_match') || text.includes('pv_none')) return null;
+    const match = text.match(/="([^"]+)"/);
+    if (!match) return null;
+    const fields = match[1].split(',');
+    if (fields.length < 6) return null;
+    const price = parseFloat(fields[0]);
+    if (isNaN(price)) return null;
+    return {
+      price,
+      changePct: parseFloat(fields[1]) || 0,
+      prevClose: parseFloat(fields[2]) || price,
+      source: 'Sina'
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// ===== 腾讯财经数据获取 =====
+async function tencentFetch(code) {
+  try {
+    const url = `https://qt.gtimg.cn/q=${code}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const text = await res.text();
+    // 过滤无效响应
+    if (text.includes('none_match') || text.includes('pv_none')) return null;
+    const match = text.match(/="([^"]+)"/);
+    if (!match) return null;
+    const fields = match[1].split('~');
+    if (fields.length < 40) return null;
+    const price = parseFloat(fields[3]); // 开盘价作为当前价
+    const prevClose = parseFloat(fields[4]); // 昨收
+    if (isNaN(price)) return null;
+    // 涨跌幅在索引38
+    const changePct = parseFloat(fields[38]) || 0;
+    return {
+      price,
+      prevClose,
+      changePct,
+      source: 'Tencent'
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// ===== 东方财富数据获取 =====
+async function eastmoneyFetch(secid, fields) {
+  try {
+    const url = `https://push2.eastmoney.com/api/qt/stock/get?secid=${secid}&fields=${fields}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.data || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ===== 加载基本面数据（从本地JSON）=====
+async function loadFinancialData() {
+  // 尝试多个可能路径 (GitHub Pages 兼容)
+  const paths = [
+    'financial_data.json',
+    './financial_data.json'
+  ];
+  
+  // 方法1: fetch
+  for (const path of paths) {
+    try {
+      const res = await fetch(path, { signal: AbortSignal.timeout(5000) });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+  }
+  
+  // 方法2: XMLHttpRequest (兼容file://协议)
+  for (const path of paths) {
+    try {
+      const data = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', path, true);
+        xhr.timeout = 5000;
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            try { resolve(JSON.parse(xhr.responseText)); }
+            catch (e) { reject(e); }
+          } else { reject(new Error('Status ' + xhr.status)); }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.ontimeout = () => reject(new Error('Timeout'));
+        xhr.send();
+      });
+      return data;
+    } catch (e) {}
+  }
+  
+  return null;
+}
+
+// ===== 渲染基本面表格 =====
+function renderFinancialTable(data) {
+  if (!data || !data.stocks) {
+    document.getElementById('finTableBody').innerHTML = 
+      '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--red)">❌ 无法加载基本面数据</td></tr>';
+    setSourceStatus('ifindStatus', 'fail', '❌');
+    return;
+  }
+
+  const validStocks = data.stocks
+    .filter(s => s.roe !== null || s.dividend !== null)
+    .sort((a, b) => (b.roe || 0) - (a.roe || 0))
+    .slice(0, 20);
+
+  let html = '';
+  validStocks.forEach(stock => {
+    const roeColor = stock.roe > 15 ? 'green' : stock.roe > 8 ? '' : '';
+    html += `
+      <tr>
+        <td>
+          <div class="stock-name">${stock.name}</div>
+          <div class="stock-code">${stock.ticker}</div>
+        </td>
+        <td><span class="industry-tag">${stock.industry || '综合'}</span></td>
+        <td class="fin-val ${roeColor}">${stock.roe ? stock.roe.toFixed(1) + '%' : '--'}</td>
+        <td class="fin-val ${stock.dividend > 4 ? 'green' : ''}">${stock.dividend ? stock.dividend.toFixed(2) + '%' : '--'}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('finTableBody').innerHTML = html;
+  
+  // 更新时间
+  const updateTime = new Date(data.updated_at);
+  document.getElementById('finUpdateTime').textContent = 
+    `更新: ${updateTime.toLocaleDateString('zh-CN')} ${updateTime.toLocaleTimeString('zh-CN')}`;
+  
+  setSourceStatus('ifindStatus', 'ok', '✅');
+  liveData.financial = data;
+}
+
+// ===== 渲染行情快讯条 =====
+function renderTicker() {
+  const items = [];
+  const addItem = (name, price, change, source) => {
+    if (price === null || price === undefined) return;
+    const cls = change >= 0 ? 'up' : 'down';
+    const sign = change >= 0 ? '+' : '';
+    items.push(`<span class="ticker-item"><span class="name">${name}</span><span class="val">${formatPrice(name, price)}</span><span class="chg ${cls}">${sign}${change?.toFixed(2) || 0}%</span><span class="source">${source}</span></span>`);
+  };
+
+  addItem('WTI原油', liveData.wti?.price, liveData.wti?.changePct, '新浪');
+  addItem('布伦特', liveData.brent?.price, liveData.brent?.changePct, '新浪');
+  addItem('黄金', liveData.gold?.price, liveData.gold?.changePct, '新浪');
+  addItem('白银', liveData.silver?.price, liveData.silver?.changePct, '新浪');
+  addItem('天然气', liveData.ng?.price, liveData.ng?.changePct, '新浪');
+  addItem('标普500', liveData.spx?.price, liveData.spx?.changePct, '腾讯');
+  addItem('沪深300', liveData.csi?.price, liveData.csi?.changePct, '腾讯');
+  addItem('纳斯达克', liveData.ndx?.price, liveData.ndx?.changePct, '腾讯');
+  addItem('恒生指数', liveData.hsi?.price, liveData.hsi?.changePct, '腾讯');
+
+  if (items.length === 0) {
+    document.getElementById('tickerBar').innerHTML = 
+      '<span class="ticker-label">📡 市场数据</span><span style="color:var(--text3);font-size:12px">正在连接数据源...</span>';
+    return;
+  }
+
+  document.getElementById('tickerBar').innerHTML = 
+    '<span class="ticker-label">📡 市场数据</span>' + items.join('');
+}
+
+function formatPrice(name, price) {
+  if (!price && price !== 0) return '--';
+  if (name === '美债10Y') return price.toFixed(2) + '%';
+  if (name === 'VIX') return price.toFixed(2);
+  if (price > 10000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (price > 1000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return price.toFixed(2);
+}
+
+// ===== 计算数据质量 =====
+function calcDataQuality() {
+  const sources = ['wti', 'brent', 'gold', 'silver', 'ng', 'spx', 'csi', 'ndx', 'hsi'];
+  const valid = sources.filter(s => liveData[s]?.price !== null && liveData[s]?.price !== undefined).length;
+  const quality = Math.round((valid / sources.length) * 100);
+  document.getElementById('dataQuality').textContent = quality + '%';
+  document.getElementById('dataQuality').className = 'status ' + (quality >= 80 ? 'ok' : quality >= 50 ? 'loading' : 'fail');
+  return quality;
+}
+
+// ===== 刷新所有数据 =====
+async function refreshAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">🔄</span> 刷新中...';
+
+  // 并行获取所有市场数据
+  setSourceStatus('sinaStatus', 'loading', '⏳');
+  setSourceStatus('tencentStatus', 'loading', '⏳');
+  setSourceStatus('emStatus', 'loading', '⏳');
+
+  try {
+    // 新浪期货 (WTI/布伦特/黄金/白银/天然气)
+    const [wti, brent, gold, silver, ng] = await Promise.all([
+      sinaFuturesFetch('hf_CL'),
+      sinaFuturesFetch('hf_OIL'),
+      sinaFuturesFetch('hf_GC'),
+      sinaFuturesFetch('hf_SI'),
+      sinaFuturesFetch('hf_NG')
+    ]);
+    liveData.wti = wti;
+    liveData.brent = brent;
+    liveData.gold = gold;
+    liveData.silver = silver;
+    liveData.ng = ng;
+    setSourceStatus('sinaStatus', wti ? 'ok' : 'fail', wti ? '✅' : '❌');
+
+    // 腾讯财经 (标普/沪深300/纳斯达克/恒生)
+    const [spx, csi, ndx, hsi] = await Promise.all([
+      tencentFetch('usINX'),      // 标普500
+      tencentFetch('sh000300'),   // 沪深300
+      tencentFetch('usNDX'),      // 纳斯达克100
+      tencentFetch('hkHSI')       // 恒生指数
+    ]);
+    liveData.spx = spx;
+    liveData.csi = csi;
+    liveData.ndx = ndx;
+    liveData.hsi = hsi;
+    setSourceStatus('tencentStatus', spx ? 'ok' : 'fail', spx ? '✅' : '❌');
+
+    // 东方财富 VIX (备选，如果腾讯/新浪不工作)
+    // 注意: 东方财富API可能不稳定，需要时启用
+    setSourceStatus('emStatus', 'loading', '⏳');
+    try {
+      const vixData = await eastmoneyFetch('100.CFEVIX', 'f43,f170');
+      if (vixData) {
+        liveData.vix = {
+          price: vixData.f43 / 100,
+          changePct: vixData.f170 ? vixData.f170 / 100 : null,
+          source: 'EM'
+        };
+        setSourceStatus('emStatus', 'ok', '✅');
+      } else {
+        // VIX不可用时显示估算值
+        liveData.vix = { price: 18.5, changePct: 0, source: '估算' };
+        setSourceStatus('emStatus', 'loading', '~');
+      }
+    } catch (e) {
+      setSourceStatus('emStatus', 'fail', '❌');
+    }
+
+    // 渲染
+    renderTicker();
+    const quality = calcDataQuality();
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('zh-CN');
+    document.getElementById('lastUpdate').className = 'status ok';
+
+  } catch (e) {
+    console.error('Market data error:', e);
+    setSourceStatus('sinaStatus', 'fail', '❌');
+    setSourceStatus('tencentStatus', 'fail', '❌');
+    setSourceStatus('emStatus', 'fail', '❌');
+  }
+
+  // 加载基本面数据
+  const finData = await loadFinancialData();
+  renderFinancialTable(finData);
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>🔄</span> 刷新数据';
+}
+
+// ===== 模态框 =====
+function openTool(file, title) {
+  const modal = document.getElementById('toolModal');
+  const iframe = document.getElementById('modalIframe');
+  const loading = document.getElementById('modalLoading');
+  
+  document.getElementById('modalTitle').innerHTML = title || file;
+  modal.classList.add('open');
+  loading.style.display = 'block';
+  
+  iframe.src = file;
+  iframe.onload = () => { loading.style.display = 'none'; };
+}
+
+function closeModal() {
+  const modal = document.getElementById('toolModal');
+  const iframe = document.getElementById('modalIframe');
+  modal.classList.remove('open');
+  iframe.src = 'about:blank';
+}
+
+// ESC关闭
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ===== 启动 =====
+document.addEventListener('DOMContentLoaded', () => {
+  refreshAll();
+  // 每5分钟自动刷新
+  setInterval(refreshAll, 5 * 60 * 1000);
+});
+</script>
+</body>
+</html>
