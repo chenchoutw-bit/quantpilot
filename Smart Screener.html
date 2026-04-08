@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Screener · 智能选股器</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #060d1a;
+            --card: #0d1a2e;
+            --card2: #111d35;
+            --border: #1a2d4a;
+            --text: #e2e8f0;
+            --text2: #8ba3bf;
+            --text3: #3d5a7a;
+            --accent: #0ea5e9;
+            --accent2: #38bdf8;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f59e0b;
+            --purple: #a78bfa;
+            --pink: #f472b6;
+            --gold: #fbbf24;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #080f1e 0%, #0c1e3a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .header-title {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(90deg, #38bdf8, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-sub { font-size: 11px; color: var(--text3); }
+        .header-right { display: flex; gap: 8px; align-items: center; }
+
+        /* Main */
+        .main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .status-left { display: flex; align-items: center; gap: 12px; }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--orange);
+            animation: pulse 2s infinite;
+        }
+        .status-dot.ready { background: var(--green); }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .status-text { color: var(--text2); }
+        .status-count { color: var(--accent); font-weight: 700; }
+
+        /* Prompt Input */
+        .prompt-area {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .prompt-label {
+            font-size: 12px; color: var(--text3);
+            margin-bottom: 10px;
+        }
+
+        .prompt-input-wrap {
+            display: flex; gap: 10px; align-items: flex-start;
+        }
+
+        .prompt-input {
+            flex: 1;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .prompt-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+        }
+
+        .run-btn {
+            background: linear-gradient(135deg, var(--accent), #0284c7);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 28px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer;
+        }
+        .run-btn:hover { box-shadow: 0 4px 20px rgba(14,165,233,0.3); }
+        .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Quick prompts */
+        .quick-prompts {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .quick-btn {
+            background: rgba(14,165,233,0.1);
+            border: 1px solid rgba(14,165,233,0.3);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px; cursor: pointer;
+        }
+        .quick-btn:hover { background: rgba(14,165,233,0.2); }
+
+        /* iFinD Section */
+        .ifind-section {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.03) 100%);
+            border: 1px solid rgba(16,185,129,0.25);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .ifind-header {
+            display: flex; align-items: center;
+            justify-content: space-between; margin-bottom: 16px;
+        }
+
+        .ifind-title {
+            font-size: 15px; font-weight: 700;
+            display: flex; align-items: center; gap: 8px;
+            color: var(--green);
+        }
+
+        .ifind-btn {
+            background: linear-gradient(135deg, var(--green), #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer;
+        }
+        .ifind-btn:hover { box-shadow: 0 4px 20px rgba(16,185,129,0.3); }
+        .ifind-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .ifind-input {
+            flex: 1;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .ifind-input:focus { border-color: var(--green); }
+
+        .ifind-input-row {
+            display: flex; gap: 10px;
+        }
+
+        .ifind-tips {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .ifind-tip {
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.2);
+            color: var(--green);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px; cursor: pointer;
+        }
+        .ifind-tip:hover { background: rgba(16,185,129,0.15); }
+
+        /* Results */
+        .results-section {
+            display: none;
+            margin-bottom: 24px;
+        }
+        .results-section.show { display: block; }
+
+        .results-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .results-count {
+            font-size: 15px; font-weight: 700;
+        }
+        .results-count .num {
+            font-size: 22px;
+            background: linear-gradient(90deg, var(--green), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .view-toggle { display: flex; gap: 4px; }
+        .view-btn {
+            background: var(--card2); border: 1px solid var(--border);
+            color: var(--text3); padding: 6px 12px;
+            border-radius: 8px; font-size: 12px; cursor: pointer;
+        }
+        .view-btn.active { background: rgba(14,165,233,0.15); border-color: var(--accent); color: var(--accent); }
+
+        /* Stock Grid */
+        .stock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
+        }
+
+        .stock-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .stock-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+        .stock-card.rank-1 { border-left: 3px solid #fbbf24; }
+        .stock-card.rank-2 { border-left: 3px solid #94a3b8; }
+        .stock-card.rank-3 { border-left: 3px solid #cd7f32; }
+
+        .stock-top {
+            display: flex; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .stock-name { font-size: 16px; font-weight: 700; }
+        .stock-code { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+        .stock-score {
+            font-size: 28px; font-weight: 800;
+        }
+
+        .stock-tags {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+        }
+
+        .tag {
+            font-size: 10px; padding: 3px 8px;
+            border-radius: 6px; font-weight: 600;
+        }
+
+        .tag.pe { background: rgba(16,185,129,0.12); color: var(--green); }
+        .tag.pb { background: rgba(14,165,233,0.12); color: var(--accent); }
+        .tag.roe { background: rgba(251,191,36,0.12); color: var(--gold); }
+        .tag.dividend { background: rgba(244,114,182,0.12); color: var(--pink); }
+
+        .stock-metrics {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 8px; margin-bottom: 10px;
+        }
+
+        .metric-item {
+            background: var(--card2);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .metric-label { font-size: 10px; color: var(--text3); }
+        .metric-value { font-size: 13px; font-weight: 700; }
+        .metric-value.pos { color: var(--green); }
+        .metric-value.neg { color: var(--red); }
+        .metric-value.neu { color: var(--text2); }
+
+        .stock-reason {
+            background: var(--card2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text2);
+            border-left: 2px solid var(--accent);
+        }
+
+        /* Table View */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 13px;
+            display: none;
+        }
+        .results-table.show { display: table; }
+
+        .results-table th {
+            background: var(--card2);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text3);
+            font-size: 11px;
+        }
+
+        .results-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(26,45,74,0.5);
+        }
+
+        .results-table tr:hover td { background: rgba(14,165,233,0.04); }
+        .results-table .ticker { font-weight: 700; color: var(--accent); }
+
+        /* Charts */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .chart-title {
+            font-size: 13px; font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .industry-list { display: flex; flex-direction: column; gap: 8px; }
+        .industry-item { display: flex; align-items: center; gap: 8px; }
+        .industry-name { font-size: 12px; color: var(--text2); min-width: 60px; }
+        .industry-bar-bg { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .industry-bar-fill { height: 100%; border-radius: 4px; }
+        .industry-count { font-size: 12px; font-weight: 700; min-width: 20px; text-align: right; color: var(--accent); }
+
+        /* Loading */
+        .loading {
+            display: none;
+            align-items: center; justify-content: center;
+            gap: 10px;
+            padding: 40px;
+            color: var(--text3);
+        }
+        .loading.show { display: flex; }
+        .spinner {
+            width: 24px; height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* iFinD Results */
+        .ifind-results {
+            margin-top: 20px;
+            display: none;
+        }
+        .ifind-results.show { display: block; }
+
+        .ifind-results-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .ifind-results-count {
+            font-size: 16px; font-weight: 700;
+            color: var(--green);
+        }
+
+        .ifind-stock-list {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .ifind-stock-item {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .ifind-stock-item:hover { border-color: var(--green); }
+        .ifind-stock-left { display: flex; align-items: center; gap: 12px; }
+
+        .ifind-stock-rank {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            background: rgba(16,185,129,0.15);
+            color: var(--green);
+            font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .ifind-stock-rank.top3 {
+            background: linear-gradient(135deg, var(--gold), #f59e0b);
+            color: #000;
+        }
+
+        .ifind-stock-name { font-size: 15px; font-weight: 600; }
+        .ifind-stock-code { font-size: 12px; color: var(--text3); margin-top: 2px; }
+        .ifind-stock-metric { font-size: 14px; font-weight: 700; }
+        .ifind-stock-label { font-size: 11px; color: var(--text3); margin-top: 2px; text-align: right; }
+
+        /* Prompt Library */
+        .prompt-library {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .library-title {
+            font-size: 14px; font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .library-items { display: flex; flex-direction: column; gap: 8px; }
+        .library-item {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .library-item:hover { border-color: var(--accent); }
+        .library-item .icon { font-size: 18px; }
+        .library-item .text { font-size: 13px; color: var(--text2); flex: 1; }
+        .library-item .cat-tag {
+            font-size: 10px; padding: 2px 8px;
+            border-radius: 6px; background: var(--border);
+            color: var(--text3);
+        }
+
+        /* Parse Result */
+        .parse-result {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .parse-result.show { display: block; }
+
+        .parse-title {
+            font-size: 12px; color: var(--text3);
+            margin-bottom: 10px;
+        }
+
+        .parse-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .parse-chip {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        .parse-chip .field { color: var(--text3); }
+        .parse-chip .op { color: var(--orange); }
+        .parse-chip .val { color: var(--green); font-weight: 600; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .charts-row { grid-template-columns: 1fr; }
+            .stock-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* Footer */
+        .footer {
+            text-align: center; padding: 24px;
+            color: var(--text3); font-size: 11px;
+        }
+
+        /* Score colors */
+        .score-90 { color: #10b981; }
+        .score-80 { color: #34d399; }
+        .score-70 { color: #38bdf8; }
+        .score-60 { color: #a78bfa; }
+        .score-50 { color: #f59e0b; }
+        .score-40 { color: #f97316; }
+        .score-30 { color: #ef4444; }
+
+        /* Ifind loading */
+        .ifind-loading {
+            display: none;
+            align-items: center; justify-content: center;
+            gap: 10px;
+            padding: 30px;
+            color: var(--green);
+        }
+        .ifind-loading.show { display: flex; }
+        .ifind-spinner {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(16,185,129,0.3);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <div class="logo-icon">&#x1F50D;</div>
+        <div>
+            <div class="header-title">Smart Screener</div>
+            <div class="header-sub">智能选股器</div>
+        </div>
+    </div>
+    <div class="header-right">
+        <div id="dataStatus" class="status-text">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">初始化中...</span>
+        </div>
+    </div>
+</div>
+
+<div class="main">
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left">
+            <span id="stockCount" class="status-count">0</span>
+            <span class="status-text">只股票</span>
+        </div>
+        <div class="status-text">
+            <span id="updateTime">--</span>
+        </div>
+    </div>
+
+    <!-- Prompt Input -->
+    <div class="prompt-area">
+        <div class="prompt-label">用自然语言描述选股条件</div>
+        <div class="prompt-input-wrap">
+            <input type="text" class="prompt-input" id="promptInput"
+                placeholder="例如：市值大于500亿、PE低于20的高股息股票"
+                value="市值大于500亿、PE低于20的高股息股票">
+            <button class="run-btn" id="runBtn" onclick="runScreener()">开始选股</button>
+        </div>
+        <div class="quick-prompts">
+            <button class="quick-btn" onclick="quickSearch(1)">低估值高股息</button>
+            <button class="quick-btn" onclick="quickSearch(2)">高ROE龙头</button>
+            <button class="quick-btn" onclick="quickSearch(3)">高成长</button>
+            <button class="quick-btn" onclick="quickSearch(4)">机构重仓</button>
+            <button class="quick-btn" onclick="quickSearch(5)">上证50优选</button>
+            <button class="quick-btn" onclick="quickSearch(6)">全部股票</button>
+        </div>
+    </div>
+
+    <!-- iFinD Section -->
+    <div class="ifind-section">
+        <div class="ifind-header">
+            <div class="ifind-title">
+                <span>&#x1F916;</span> 智能选股
+            </div>
+        </div>
+        <div class="ifind-input-row">
+            <input type="text" class="ifind-input" id="ifindInput"
+                placeholder="输入选股条件，如：ROE大于15%的银行股"
+                value="ROE大于15%的银行股">
+            <button class="ifind-btn" id="ifindBtn" onclick="runIfindSearch()">开始筛选</button>
+        </div>
+        <div class="ifind-tips">
+            <span class="ifind-tip" onclick="setIfindQuery('科技行业市值大于500亿')">科技龙头</span>
+            <span class="ifind-tip" onclick="setIfindQuery('ROE大于15%股息率高于3%')">低估值银行</span>
+            <span class="ifind-tip" onclick="setIfindQuery('净利润增速大于30%')">高成长</span>
+            <span class="ifind-tip" onclick="setIfindQuery('医药行业PE低于30')">医药估值</span>
+            <span class="ifind-tip" onclick="setIfindQuery('市值排名前10')">大盘龙头</span>
+        </div>
+
+        <div class="ifind-loading" id="ifindLoading">
+            <div class="ifind-spinner"></div>
+            <span>筛选中...</span>
+        </div>
+
+        <div class="ifind-results" id="ifindResults">
+            <div class="ifind-results-header">
+                <div class="ifind-results-count" id="ifindCount">找到 0 只股票</div>
+            </div>
+            <div class="ifind-stock-list" id="ifindStockList"></div>
+        </div>
+    </div>
+
+    <!-- Parse Result -->
+    <div class="parse-result" id="parseResult">
+        <div class="parse-title">条件解析</div>
+        <div class="parse-chips" id="parseChips"></div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <span>筛选中...</span>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section" id="resultsSection">
+
+        <div class="results-header">
+            <div>
+                <div class="results-count">
+                    筛选结果 <span class="num" id="resultCount">0</span> 只
+                </div>
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" id="cardViewBtn" onclick="setView('card')">卡片</button>
+                <button class="view-btn" id="tableViewBtn" onclick="setView('table')">表格</button>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row" id="chartsRow">
+            <div class="chart-card">
+                <div class="chart-title">评分分布</div>
+                <canvas id="scoreDistChart" height="160"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">行业分布</div>
+                <div class="industry-list" id="industryList"></div>
+            </div>
+        </div>
+
+        <!-- Stock Grid -->
+        <div class="stock-grid" id="stockGrid"></div>
+
+        <!-- Table -->
+        <table class="results-table" id="resultsTable">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>代码</th>
+                    <th>名称</th>
+                    <th>综合评分</th>
+                    <th>PE</th>
+                    <th>PB</th>
+                    <th>ROE</th>
+                    <th>股息率</th>
+                    <th>市值(亿)</th>
+                    <th>行业</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+    </div>
+
+    <!-- Prompt Library -->
+    <div class="prompt-library">
+        <div class="library-title">选股条件库（点击直接使用）</div>
+        <div class="library-items" id="libraryItems"></div>
+    </div>
+
+</div>
+
+<div class="footer">
+    Smart Screener · 仅供参考，不构成投资建议
+</div>
+
+<script>
+// ==================== DATA ====================
+let stockPool = [];
+let currentView = 'card';
+
+// 上证50成分股（带模拟数据）
+const SZ50_COMPONENTS = [
+    {ticker:'600519',name:'贵州茅台',industry:'白酒',pe:28.5,pb:11.2,roe:24.5,marketCap:2100,dividend:3.2,revenueGrow:18.2,netProfitGrow:19.1,fundHold:8.5,northHold:6.2,price1y:42.3},
+    {ticker:'000858',name:'五粮液',industry:'白酒',pe:22.3,pb:5.8,roe:21.3,marketCap:560,dividend:3.8,revenueGrow:12.4,netProfitGrow:14.8,fundHold:7.2,northHold:5.1,price1y:35.6},
+    {ticker:'601318',name:'中国平安',industry:'保险',pe:8.2,pb:1.2,roe:12.8,marketCap:780,dividend:5.1,revenueGrow:5.2,netProfitGrow:8.5,fundHold:4.2,northHold:3.8,price1y:12.5},
+    {ticker:'600036',name:'招商银行',industry:'银行',pe:7.5,pb:1.1,roe:16.5,marketCap:920,dividend:4.8,revenueGrow:7.8,netProfitGrow:11.2,fundHold:5.8,northHold:4.5,price1y:18.9},
+    {ticker:'000333',name:'美的集团',industry:'家电',pe:14.2,pb:3.5,roe:22.1,marketCap:440,dividend:4.2,revenueGrow:8.5,netProfitGrow:12.3,fundHold:6.5,northHold:4.2,price1y:28.4},
+    {ticker:'002415',name:'海康威视',industry:'科技',pe:18.5,pb:4.2,roe:19.2,marketCap:310,dividend:3.5,revenueGrow:9.2,netProfitGrow:10.5,fundHold:5.1,northHold:3.2,price1y:5.2},
+    {ticker:'600276',name:'恒瑞医药',industry:'医药',pe:62.5,pb:8.5,roe:14.2,marketCap:310,dividend:1.2,revenueGrow:21.5,netProfitGrow:28.5,fundHold:8.2,northHold:5.8,price1y:32.5},
+    {ticker:'300750',name:'宁德时代',industry:'新能源',pe:28.5,pb:6.8,roe:25.2,marketCap:870,dividend:1.5,revenueGrow:78.5,netProfitGrow:85.5,fundHold:12.5,northHold:8.5,price1y:68.2},
+    {ticker:'688041',name:'寒武纪',industry:'AI科技',pe:-25.5,pb:12.5,roe:-8.5,marketCap:740,dividend:0,revenueGrow:125.5,netProfitGrow:-15.2,fundHold:6.5,northHold:3.2,price1y:185.2},
+    {ticker:'002475',name:'立讯精密',industry:'消费电子',pe:22.5,pb:4.8,roe:18.5,marketCap:200,dividend:2.5,revenueGrow:25.5,netProfitGrow:18.5,fundHold:7.5,northHold:4.2,price1y:38.5},
+    {ticker:'601012',name:'隆基绿能',industry:'光伏',pe:15.8,pb:2.5,roe:15.2,marketCap:138,dividend:3.2,revenueGrow:12.5,netProfitGrow:-8.5,fundHold:4.5,northHold:2.8,price1y:-25.2},
+    {ticker:'600900',name:'长江电力',industry:'电力',pe:22.5,pb:2.8,roe:16.2,marketCap:720,dividend:5.8,revenueGrow:8.5,netProfitGrow:6.2,fundHold:3.5,northHold:2.5,price1y:15.8},
+    {ticker:'600028',name:'中国石化',industry:'能源',pe:8.5,pb:0.85,roe:10.5,marketCap:580,dividend:8.5,revenueGrow:5.2,netProfitGrow:2.5,fundHold:2.8,northHold:1.8,price1y:8.5},
+    {ticker:'601166',name:'兴业银行',industry:'银行',pe:4.5,pb:0.62,roe:14.5,marketCap:340,dividend:6.2,revenueGrow:4.2,netProfitGrow:6.8,fundHold:3.2,northHold:2.2,price1y:5.2},
+    {ticker:'000001',name:'平安银行',industry:'银行',pe:5.2,pb:0.72,roe:12.5,marketCap:220,dividend:5.5,revenueGrow:6.5,netProfitGrow:8.2,fundHold:2.5,northHold:1.5,price1y:8.5},
+    {ticker:'600031',name:'三一重工',industry:'机械',pe:18.5,pb:2.2,roe:12.5,marketCap:135,dividend:3.8,revenueGrow:15.5,netProfitGrow:22.5,fundHold:5.5,northHold:3.5,price1y:22.5},
+    {ticker:'300059',name:'东方财富',industry:'金融科技',pe:35.5,pb:5.8,roe:18.5,marketCap:265,dividend:1.5,revenueGrow:28.5,netProfitGrow:32.5,fundHold:8.5,northHold:5.8,price1y:35.2},
+    {ticker:'002594',name:'比亚迪',industry:'汽车',pe:28.5,pb:5.5,roe:16.5,marketCap:685,dividend:1.8,revenueGrow:42.5,netProfitGrow:85.5,fundHold:11.5,northHold:7.5,price1y:52.5},
+    {ticker:'600585',name:'海螺水泥',industry:'建材',pe:8.5,pb:1.2,roe:14.5,marketCap:120,dividend:6.5,revenueGrow:-5.2,netProfitGrow:-12.5,fundHold:3.2,northHold:2.2,price1y:-18.5},
+    {ticker:'601668',name:'中国建筑',industry:'建筑',pe:5.2,pb:0.85,roe:15.2,marketCap:2200,dividend:4.5,revenueGrow:8.5,netProfitGrow:10.2,fundHold:3.5,northHold:2.5,price1y:12.5},
+    {ticker:'601398',name:'工商银行',industry:'银行',pe:5.8,pb:0.72,roe:12.8,marketCap:18000,dividend:4.8,revenueGrow:3.2,netProfitGrow:4.5,fundHold:2.5,northHold:1.2,price1y:8.2},
+    {ticker:'601939',name:'建设银行',industry:'银行',pe:5.5,pb:0.75,roe:13.2,marketCap:16000,dividend:4.9,revenueGrow:3.5,netProfitGrow:5.2,fundHold:2.2,northHold:1.0,price1y:9.5},
+    {ticker:'601288',name:'农业银行',industry:'银行',pe:5.2,pb:0.68,roe:12.5,marketCap:12000,dividend:5.2,revenueGrow:4.2,netProfitGrow:5.8,fundHold:2.0,northHold:0.8,price1y:10.2},
+    {ticker:'600050',name:'中国联通',industry:'运营商',pe:18.5,pb:1.05,roe:5.8,marketCap:1500,dividend:2.5,revenueGrow:5.5,netProfitGrow:8.2,fundHold:1.5,northHold:0.5,price1y:15.8},
+    {ticker:'600030',name:'中信证券',industry:'券商',pe:15.2,pb:1.45,roe:8.5,marketCap:2200,dividend:3.2,revenueGrow:12.5,netProfitGrow:15.8,fundHold:4.5,northHold:2.5,price1y:25.6},
+    {ticker:'600887',name:'伊利股份',industry:'食品',pe:18.5,pb:3.8,roe:20.5,marketCap:1600,dividend:4.5,revenueGrow:8.5,netProfitGrow:10.2,fundHold:6.5,northHold:4.5,price1y:15.8},
+    {ticker:'600009',name:'上海机场',industry:'机场',pe:35.5,pb:2.8,roe:8.5,marketCap:850,dividend:2.5,revenueGrow:25.5,netProfitGrow:35.2,fundHold:4.2,northHold:3.5,price1y:28.5},
+    {ticker:'601888',name:'中国中免',industry:'旅游',pe:28.5,pb:8.5,roe:22.5,marketCap:3200,dividend:2.8,revenueGrow:18.5,netProfitGrow:25.5,fundHold:8.5,northHold:6.5,price1y:35.2},
+    {ticker:'600690',name:'海尔智家',industry:'家电',pe:15.5,pb:2.8,roe:17.5,marketCap:1850,dividend:3.8,revenueGrow:7.5,netProfitGrow:12.5,fundHold:5.5,northHold:3.8,price1y:18.5},
+    {ticker:'600048',name:'保利发展',industry:'房地产',pe:8.5,pb:1.05,roe:12.5,marketCap:1200,dividend:5.5,revenueGrow:5.5,netProfitGrow:8.5,fundHold:3.5,northHold:2.2,price1y:10.5},
+    {ticker:'601328',name:'交通银行',industry:'银行',pe:5.0,pb:0.62,roe:11.5,marketCap:4500,dividend:5.8,revenueGrow:3.5,netProfitGrow:4.8,fundHold:1.8,northHold:0.5,price1y:8.5},
+    {ticker:'601088',name:'中国神华',industry:'煤炭',pe:12.5,pb:1.65,roe:18.5,marketCap:4500,dividend:8.5,revenueGrow:8.5,netProfitGrow:12.5,fundHold:3.5,northHold:2.5,price1y:35.5},
+    {ticker:'601601',name:'中国太保',industry:'保险',pe:9.5,pb:1.45,roe:12.5,marketCap:2100,dividend:4.5,revenueGrow:6.5,netProfitGrow:9.5,fundHold:3.8,northHold:2.8,price1y:15.2},
+    {ticker:'601628',name:'中国人寿',industry:'保险',pe:15.5,pb:2.25,roe:8.5,marketCap:7800,dividend:3.5,revenueGrow:5.5,netProfitGrow:8.5,fundHold:2.5,northHold:1.5,price1y:12.5},
+    {ticker:'601336',name:'新华保险',industry:'保险',pe:12.5,pb:1.65,roe:10.5,marketCap:850,dividend:4.2,revenueGrow:4.5,netProfitGrow:7.5,fundHold:2.2,northHold:1.2,price1y:10.5},
+    {ticker:'601818',name:'光大银行',industry:'银行',pe:4.8,pb:0.58,roe:11.5,marketCap:1800,dividend:5.5,revenueGrow:4.5,netProfitGrow:5.5,fundHold:1.5,northHold:0.5,price1y:7.5},
+    {ticker:'601111',name:'中国国航',industry:'航空',pe:-8.5,pb:1.85,roe:-12.5,marketCap:950,dividend:0,revenueGrow:35.5,netProfitGrow:-25.5,fundHold:2.5,northHold:1.5,price1y:-15.5},
+    {ticker:'601186',name:'中国铁建',industry:'建筑',pe:5.5,pb:0.72,roe:10.5,marketCap:1150,dividend:3.5,revenueGrow:6.5,netProfitGrow:8.5,fundHold:2.5,northHold:1.2,price1y:12.5},
+    {ticker:'601766',name:'中国中车',industry:'高铁',pe:18.5,pb:1.85,roe:10.5,marketCap:1850,dividend:2.8,revenueGrow:5.5,netProfitGrow:8.5,fundHold:3.5,northHold:2.0,price1y:15.5},
+    {ticker:'601319',name:'中国人保',industry:'保险',pe:8.5,pb:1.25,roe:11.5,marketCap:1650,dividend:4.2,revenueGrow:5.5,netProfitGrow:8.5,fundHold:2.5,northHold:1.5,price1y:12.5},
+    {ticker:'601857',name:'中国石油',industry:'能源',pe:8.5,pb:0.92,roe:10.5,marketCap:12000,dividend:5.5,revenueGrow:8.5,netProfitGrow:12.5,fundHold:2.5,northHold:1.5,price1y:25.5},
+    {ticker:'600547',name:'山东黄金',industry:'黄金',pe:35.5,pb:3.85,roe:15.5,marketCap:850,dividend:2.5,revenueGrow:15.5,netProfitGrow:25.5,fundHold:3.5,northHold:2.5,price1y:45.5},
+    {ticker:'600111',name:'北方稀土',industry:'稀土',pe:28.5,pb:4.25,roe:18.5,marketCap:680,dividend:2.5,revenueGrow:18.5,netProfitGrow:25.5,fundHold:4.5,northHold:3.5,price1y:35.5},
+    {ticker:'601985',name:'中国核电',industry:'电力',pe:15.5,pb:1.85,roe:14.5,marketCap:1250,dividend:3.5,revenueGrow:8.5,netProfitGrow:10.5,fundHold:3.5,northHold:2.5,price1y:25.5},
+    {ticker:'601600',name:'中国铝业',industry:'有色',pe:12.5,pb:1.25,roe:12.5,marketCap:850,dividend:3.5,revenueGrow:15.5,netProfitGrow:25.5,fundHold:3.5,northHold:2.5,price1y:35.5},
+    {ticker:'601138',name:'工业富联',industry:'电子',pe:15.5,pb:2.85,roe:18.5,marketCap:2500,dividend:2.8,revenueGrow:12.5,netProfitGrow:15.5,fundHold:5.5,northHold:4.5,price1y:28.5},
+    {ticker:'601728',name:'中国电信',industry:'运营商',pe:15.5,pb:1.05,roe:8.5,marketCap:4800,dividend:4.5,revenueGrow:6.5,netProfitGrow:8.5,fundHold:2.5,northHold:1.5,price1y:25.5},
+    {ticker:'601669',name:'中国电建',industry:'电力',pe:8.5,pb:1.05,roe:10.5,marketCap:950,dividend:3.5,revenueGrow:8.5,netProfitGrow:12.5,fundHold:2.5,northHold:1.5,price1y:18.5},
+    {ticker:'601600',name:'株冶集团',industry:'有色',pe:12.5,pb:1.25,roe:12.5,marketCap:280,dividend:3.5,revenueGrow:15.5,netProfitGrow:25.5,fundHold:2.5,northHold:1.5,price1y:35.5},
+    {ticker:'600438',name:'通威股份',industry:'光伏',pe:12.5,pb:2.85,roe:25.5,marketCap:850,dividend:3.5,revenueGrow:35.5,netProfitGrow:45.5,fundHold:5.5,northHold:4.5,price1y:-15.5},
+    {ticker:'601225',name:'陕西煤业',industry:'煤炭',pe:8.5,pb:1.85,roe:25.5,marketCap:1500,dividend:8.5,revenueGrow:12.5,netProfitGrow:15.5,fundHold:4.5,northHold:3.5,price1y:35.5},
+    {ticker:'000001',name:'平安银行',industry:'银行',pe:5.2,pb:0.72,roe:12.5,marketCap:220,dividend:5.5,revenueGrow:6.5,netProfitGrow:8.2,fundHold:2.5,northHold:1.5,price1y:8.5},
+];
+
+// ==================== INIT ====================
+window.addEventListener('DOMContentLoaded', function() {
+    // 立即填充数据
+    stockPool = SZ50_COMPONENTS;
+    updateStatus('ready', stockPool.length);
+    renderLibrary();
+    console.log('Smart Screener 已就绪，共 ' + stockPool.length + ' 只股票');
+});
+
+// ==================== STATUS ====================
+function updateStatus(status, count) {
+    var dot = document.getElementById('statusDot');
+    var text = document.getElementById('statusText');
+    var countEl = document.getElementById('stockCount');
+
+    countEl.textContent = count;
+
+    if (status === 'ready') {
+        dot.className = 'status-dot ready';
+        text.textContent = '数据就绪';
+        document.getElementById('runBtn').disabled = false;
+        document.getElementById('ifindBtn').disabled = false;
+    } else if (status === 'loading') {
+        dot.className = 'status-dot';
+        text.textContent = '加载中...';
+    }
+}
+
+// ==================== SCREENING ENGINE ====================
+function parsePrompt(text) {
+    var conditions = [];
+
+    // 市值
+    var mcMatch = text.match(/市值(大于|小于|高于|低于)?(\d+)/);
+    if (mcMatch) {
+        var op = mcMatch[1] === '大于' || mcMatch[1] === '高于' ? '>' : '<';
+        conditions.push({ field: 'marketCap', op: op, val: parseFloat(mcMatch[2]) });
+    }
+
+    // PE
+    var peMatch = text.match(/PE(大于|小于|高于|低于)?(\d+)/);
+    if (peMatch && peMatch[2]) {
+        var op = peMatch[1] === '大于' || peMatch[1] === '高于' ? '>' : '<';
+        conditions.push({ field: 'pe', op: op, val: parseFloat(peMatch[2]) });
+    }
+
+    // PB
+    var pbMatch = text.match(/PB(大于|小于|高于|低于)?(\d+)/);
+    if (pbMatch && pbMatch[2]) {
+        var op = pbMatch[1] === '大于' || pbMatch[1] === '高于' ? '>' : '<';
+        conditions.push({ field: 'pb', op: op, val: parseFloat(pbMatch[2]) });
+    }
+
+    // ROE
+    var roeMatch = text.match(/ROE(大于|小于|高于|低于)?(\d+)/);
+    if (roeMatch && roeMatch[2]) {
+        var op = roeMatch[1] === '大于' || roeMatch[1] === '高于' ? '>' : '<';
+        conditions.push({ field: 'roe', op: op, val: parseFloat(roeMatch[2]) });
+    }
+
+    // 股息率
+    var divMatch = text.match(/股息率(大于|高于)?(\d+)/);
+    if (divMatch && divMatch[2]) {
+        conditions.push({ field: 'dividend', op: '>', val: parseFloat(divMatch[2]) });
+    }
+
+    // 净利润增速
+    var npMatch = text.match(/净利润(增速|增长)(大于|高于)?(\d+)/);
+    if (npMatch && npMatch[3]) {
+        conditions.push({ field: 'netProfitGrow', op: '>', val: parseFloat(npMatch[3]) });
+    }
+
+    // 营收增速
+    var revMatch = text.match(/营收(增速|增长)(大于|高于)?(\d+)/);
+    if (revMatch && revMatch[3]) {
+        conditions.push({ field: 'revenueGrow', op: '>', val: parseFloat(revMatch[3]) });
+    }
+
+    // 近一年涨幅
+    var y1Match = text.match(/近一年涨幅(大于|高于)?(\d+)/);
+    if (y1Match && y1Match[2]) {
+        conditions.push({ field: 'price1y', op: '>', val: parseFloat(y1Match[2]) });
+    }
+
+    // 行业
+    var industries = ['白酒','银行','保险','医药','科技','AI','新能源','光伏','家电','汽车','电力','机械','消费电子','建材','金融科技','券商','食品','旅游','机场','运营商','煤炭','稀土','黄金','有色','航空','高铁','建筑','房地产'];
+    for (var i = 0; i < industries.length; i++) {
+        if (text.indexOf(industries[i]) !== -1) {
+            conditions.push({ field: 'industry', op: '=', val: industries[i] });
+            break;
+        }
+    }
+
+    return conditions;
+}
+
+function showParseResult(conditions) {
+    var container = document.getElementById('parseChips');
+    var parseDiv = document.getElementById('parseResult');
+
+    if (!conditions || conditions.length === 0) {
+        parseDiv.className = 'parse-result';
+        return;
+    }
+
+    var html = '';
+    for (var i = 0; i < conditions.length; i++) {
+        var c = conditions[i];
+        if (c.field === '_sort') continue;
+        var opMap = { '>': '>', '<': '<', '=': '=' };
+        var valStr = typeof c.val === 'number' ? c.val + '' : c.val;
+        html += '<div class="parse-chip">' +
+            '<span class="field">' + c.field + '</span>' +
+            '<span class="op">' + (opMap[c.op] || c.op) + '</span>' +
+            '<span class="val">' + valStr + '</span>' +
+        '</div>';
+    }
+    container.innerHTML = html;
+    parseDiv.className = 'parse-result show';
+}
+
+function screenStocks(conditions) {
+    var results = stockPool.filter(function(s) {
+        for (var i = 0; i < conditions.length; i++) {
+            var c = conditions[i];
+            if (c.field === '_sort' || c.field === 'industry') continue;
+
+            var val = s[c.field];
+            if (val === null || val === undefined) val = 0;
+
+            if (c.op === '>') {
+                if (!(val > c.val)) return false;
+            } else if (c.op === '<') {
+                if (!(val < c.val)) return false;
+            }
+        }
+        return true;
+    });
+
+    // 行业过滤
+    for (var i = 0; i < conditions.length; i++) {
+        var c = conditions[i];
+        if (c.field === 'industry') {
+            results = results.filter(function(s) {
+                var ind = s.industry || '';
+                return ind.indexOf(c.val) !== -1 || c.val.indexOf(ind) !== -1;
+            });
+        }
+    }
+
+    // 计算评分
+    for (var j = 0; j < results.length; j++) {
+        results[j].score = calculateScore(results[j]);
+    }
+
+    // 排序
+    results.sort(function(a, b) { return b.score - a.score; });
+
+    return results.slice(0, 30);
+}
+
+function calculateScore(stock) {
+    var score = 50;
+
+    // PE评分（越低越好，但要排除负值）
+    if (stock.pe > 0) {
+        if (stock.pe < 10) score += 15;
+        else if (stock.pe < 15) score += 10;
+        else if (stock.pe < 20) score += 5;
+        else if (stock.pe > 50) score -= 10;
+    }
+
+    // PB评分
+    if (stock.pb < 2) score += 8;
+    else if (stock.pb > 8) score -= 5;
+
+    // ROE评分
+    if (stock.roe > 20) score += 20;
+    else if (stock.roe > 15) score += 12;
+    else if (stock.roe > 10) score += 5;
+    else if (stock.roe < 5 && stock.roe > 0) score -= 10;
+    else if (stock.roe < 0) score -= 20;
+
+    // 股息率
+    if (stock.dividend > 5) score += 12;
+    else if (stock.dividend > 3) score += 8;
+    else if (stock.dividend > 2) score += 4;
+
+    // 净利润增速
+    if (stock.netProfitGrow > 30) score += 15;
+    else if (stock.netProfitGrow > 20) score += 10;
+    else if (stock.netProfitGrow > 10) score += 5;
+    else if (stock.netProfitGrow < 0) score -= 10;
+
+    // 营收增速
+    if (stock.revenueGrow > 30) score += 10;
+    else if (stock.revenueGrow > 15) score += 5;
+    else if (stock.revenueGrow < 0) score -= 5;
+
+    // 市值（越大越好）
+    if (stock.marketCap > 5000) score += 8;
+    else if (stock.marketCap > 1000) score += 5;
+    else if (stock.marketCap < 100) score -= 5;
+
+    // 机构持股
+    if (stock.fundHold > 8) score += 10;
+    else if (stock.fundHold > 5) score += 5;
+
+    // 北向持股
+    if (stock.northHold > 5) score += 8;
+    else if (stock.northHold > 3) score += 4;
+
+    // 年涨幅
+    if (stock.price1y > 30) score += 8;
+    else if (stock.price1y > 15) score += 4;
+    else if (stock.price1y < -10) score -= 8;
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function scoreColor(s) {
+    if (s >= 85) return 'score-90';
+    if (s >= 75) return 'score-80';
+    if (s >= 65) return 'score-70';
+    if (s >= 55) return 'score-60';
+    if (s >= 45) return 'score-50';
+    if (s >= 35) return 'score-40';
+    return 'score-30';
+}
+
+function scoreLabel(s) {
+    if (s >= 85) return { text: '强烈推荐', color: '#10b981' };
+    if (s >= 75) return { text: '推荐', color: '#34d399' };
+    if (s >= 65) return { text: '关注', color: '#38bdf8' };
+    if (s >= 55) return { text: '观察', color: '#a78bfa' };
+    return { text: '谨慎', color: '#f59e0b' };
+}
+
+function getMatchReason(stock) {
+    var reasons = [];
+    if (stock.roe > 20) reasons.push('ROE ' + stock.roe.toFixed(1) + '%');
+    if (stock.pe > 0 && stock.pe < 15) reasons.push('PE ' + stock.pe.toFixed(1));
+    if (stock.dividend > 3) reasons.push('股息 ' + stock.dividend + '%');
+    if (stock.netProfitGrow > 20) reasons.push('净利增 ' + stock.netProfitGrow + '%');
+    if (stock.price1y > 30) reasons.push('年涨 ' + stock.price1y + '%');
+    if (stock.fundHold > 5) reasons.push('基金 ' + stock.fundHold + '%');
+    if (reasons.length === 0) reasons.push('基本面良好');
+    return reasons.slice(0, 3).join(' · ');
+}
+
+// ==================== VIEW ====================
+function fmt(v, decimals) {
+    if (v === null || v === undefined || isNaN(v)) return '-';
+    return Number(v).toFixed(decimals || 2);
+}
+
+function renderCardView(results) {
+    var grid = document.getElementById('stockGrid');
+    var html = '';
+
+    for (var i = 0; i < results.length; i++) {
+        var s = results[i];
+        var rank = i + 1;
+        var rankClass = rank <= 3 ? 'rank-' + rank : '';
+        var scl = scoreLabel(s.score);
+        var peStr = s.pe > 0 ? s.pe.toFixed(1) : '亏损';
+
+        html += '<div class="stock-card ' + rankClass + '">' +
+            '<div class="stock-top">' +
+                '<div>' +
+                    '<div class="stock-name">' + s.name + '</div>' +
+                    '<div class="stock-code">' + s.ticker + ' · ' + s.industry + '</div>' +
+                '</div>' +
+                '<div class="stock-score ' + scoreColor(s.score) + '">' + s.score + '</div>' +
+            '</div>' +
+            '<div class="stock-tags">' +
+                '<span class="tag pe">PE ' + peStr + '</span>' +
+                '<span class="tag pb">PB ' + fmt(s.pb, 1) + '</span>' +
+                '<span class="tag roe">ROE ' + fmt(s.roe, 1) + '%</span>' +
+                '<span class="tag dividend">股息 ' + fmt(s.dividend, 1) + '%</span>' +
+            '</div>' +
+            '<div class="stock-metrics">' +
+                '<div class="metric-item">' +
+                    '<div class="metric-label">净利润增</div>' +
+                    '<div class="metric-value ' + (s.netProfitGrow >= 0 ? 'pos' : 'neg') + '">' + fmt(s.netProfitGrow) + '%</div>' +
+                '</div>' +
+                '<div class="metric-item">' +
+                    '<div class="metric-label">营收增速</div>' +
+                    '<div class="metric-value ' + (s.revenueGrow >= 0 ? 'pos' : 'neg') + '">' + fmt(s.revenueGrow) + '%</div>' +
+                '</div>' +
+                '<div class="metric-item">' +
+                    '<div class="metric-label">市值(亿)</div>' +
+                    '<div class="metric-value neu">' + Math.round(s.marketCap) + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="stock-reason">' + getMatchReason(s) + '</div>' +
+        '</div>';
+    }
+
+    grid.innerHTML = html;
+}
+
+function renderTableView(results) {
+    var tbody = document.getElementById('tableBody');
+    var html = '';
+
+    for (var i = 0; i < results.length; i++) {
+        var s = results[i];
+        var scl = scoreLabel(s.score);
+
+        html += '<tr>' +
+            '<td>' + (i + 1) + '</td>' +
+            '<td><span class="ticker">' + s.ticker + '</span></td>' +
+            '<td>' + s.name + '</td>' +
+            '<td><span style="color:' + scl.color + '">' + s.score + '</span></td>' +
+            '<td>' + (s.pe > 0 ? s.pe.toFixed(1) : '亏损') + '</td>' +
+            '<td>' + fmt(s.pb, 2) + '</td>' +
+            '<td>' + fmt(s.roe, 1) + '%</td>' +
+            '<td>' + fmt(s.dividend, 1) + '%</td>' +
+            '<td>' + Math.round(s.marketCap) + '</td>' +
+            '<td>' + s.industry + '</td>' +
+        '</tr>';
+    }
+
+    tbody.innerHTML = html;
+}
+
+function renderCharts(results) {
+    // Score distribution
+    var dist = { '90+': 0, '80-89': 0, '70-79': 0, '60-69': 0, '50-59': 0, '<50': 0 };
+    for (var i = 0; i < results.length; i++) {
+        var s = results[i].score;
+        if (s >= 90) dist['90+']++;
+        else if (s >= 80) dist['80-89']++;
+        else if (s >= 70) dist['70-79']++;
+        else if (s >= 60) dist['60-69']++;
+        else if (s >= 50) dist['50-59']++;
+        else dist['<50']++;
+    }
+
+    var canvas = document.getElementById('scoreDistChart');
+    if (window.scoreChart) window.scoreChart.destroy();
+
+    window.scoreChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(dist),
+            datasets: [{
+                data: Object.values(dist),
+                backgroundColor: ['#10b981', '#34d399', '#38bdf8', '#a78bfa', '#f59e0b', '#ef4444'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                y: { grid: { color: 'rgba(26,45,74,0.5)' }, ticks: { stepSize: 1, color: '#64748b' } }
+            }
+        }
+    });
+
+    // Industry distribution
+    var industryCount = {};
+    for (var j = 0; j < results.length; j++) {
+        var ind = results[j].industry;
+        industryCount[ind] = (industryCount[ind] || 0) + 1;
+    }
+
+    var sorted = Object.entries(industryCount).sort(function(a, b) { return b[1] - a[1]; });
+    var maxCount = sorted[0] ? sorted[0][1] : 1;
+    var barColors = ['#10b981', '#38bdf8', '#a78bfa', '#f472b6', '#f59e0b', '#34d399', '#fbbf24', '#ef4444', '#06b6d4'];
+
+    var indHtml = '';
+    for (var k = 0; k < sorted.length; k++) {
+        var pct = Math.round((sorted[k][1] / maxCount) * 100);
+        indHtml += '<div class="industry-item">' +
+            '<div class="industry-name">' + sorted[k][0] + '</div>' +
+            '<div class="industry-bar-bg">' +
+                '<div class="industry-bar-fill" style="width:' + pct + '%;background:' + barColors[k % barColors.length] + '"></div>' +
+            '</div>' +
+            '<div class="industry-count">' + sorted[k][1] + '</div>' +
+        '</div>';
+    }
+    document.getElementById('industryList').innerHTML = indHtml;
+}
+
+function setView(view) {
+    currentView = view;
+    var grid = document.getElementById('stockGrid');
+    var table = document.getElementById('resultsTable');
+    var cardBtn = document.getElementById('cardViewBtn');
+    var tableBtn = document.getElementById('tableViewBtn');
+
+    if (view === 'card') {
+        grid.style.display = 'grid';
+        table.className = 'results-table';
+        cardBtn.className = 'view-btn active';
+        tableBtn.className = 'view-btn';
+    } else {
+        grid.style.display = 'none';
+        table.className = 'results-table show';
+        cardBtn.className = 'view-btn';
+        tableBtn.className = 'view-btn active';
+    }
+}
+
+// ==================== ACTIONS ====================
+function runScreener() {
+    var startTime = new Date().getTime();
+    var btn = document.getElementById('runBtn');
+    var loading = document.getElementById('loading');
+    var results = document.getElementById('resultsSection');
+
+    btn.disabled = true;
+    btn.textContent = '筛选中...';
+    loading.className = 'loading show';
+    results.style.display = 'none';
+
+    setTimeout(function() {
+        var text = document.getElementById('promptInput').value.trim();
+        var conditions = parsePrompt(text);
+        showParseResult(conditions);
+        var stocks = screenStocks(conditions);
+        var elapsed = new Date().getTime() - startTime;
+
+        loading.className = 'loading';
+        btn.disabled = false;
+        btn.textContent = '开始选股';
+        results.style.display = 'block';
+
+        document.getElementById('resultCount').textContent = stocks.length;
+
+        renderCardView(stocks);
+        renderTableView(stocks);
+        renderCharts(stocks);
+
+        results.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+}
+
+function runIfindSearch() {
+    var input = document.getElementById('ifindInput').value.trim();
+    if (!input) {
+        input = 'ROE大于15%的股票';
+        document.getElementById('ifindInput').value = input;
+    }
+
+    var btn = document.getElementById('ifindBtn');
+    var loading = document.getElementById('ifindLoading');
+    var results = document.getElementById('ifindResults');
+    var stockList = document.getElementById('ifindStockList');
+
+    btn.disabled = true;
+    btn.textContent = '筛选中...';
+    loading.className = 'ifind-loading show';
+    results.className = 'ifind-results';
+    stockList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--green);">筛选中...</div>';
+
+    setTimeout(function() {
+        // 使用相同的筛选逻辑
+        var conditions = parsePrompt(input);
+        var stocks = screenStocks(conditions);
+
+        if (stocks.length > 0) {
+            document.getElementById('ifindCount').textContent = '找到 ' + stocks.length + ' 只股票';
+
+            var html = '';
+            for (var i = 0; i < Math.min(stocks.length, 20); i++) {
+                var s = stocks[i];
+                var rankClass = i < 3 ? 'top3' : '';
+                var peStr = s.pe > 0 ? s.pe.toFixed(1) : '亏损';
+
+                html += '<div class="ifind-stock-item" onclick="copyCode(\'' + s.ticker + '\', \'' + s.name + '\')">' +
+                    '<div class="ifind-stock-left">' +
+                        '<div class="ifind-stock-rank ' + rankClass + '">' + (i + 1) + '</div>' +
+                        '<div>' +
+                            '<div class="ifind-stock-name">' + s.name + '</div>' +
+                            '<div class="ifind-stock-code">' + s.ticker + ' · ' + s.industry + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div>' +
+                        '<div class="ifind-stock-metric">' + s.score + '</div>' +
+                        '<div class="ifind-stock-label">评分</div>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            stockList.innerHTML = html;
+        } else {
+            stockList.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3);">' +
+                '未找到符合条件的股票<br>' +
+                '<small style="color:var(--orange);">请尝试更宽松的条件</small>' +
+            '</div>';
+            document.getElementById('ifindCount').textContent = '找到 0 只股票';
+        }
+
+        results.className = 'ifind-results show';
+        btn.disabled = false;
+        btn.textContent = '开始筛选';
+        loading.className = 'ifind-loading';
+    }, 200);
+}
+
+function quickSearch(type) {
+    var texts = {
+        1: '市值大于500亿、PE低于15、股息率高于3%',
+        2: 'ROE大于15%、市值大于500亿',
+        3: '净利润增速大于30%、营收增速大于20%',
+        4: '基金持股大于5%、北向资金大于3%',
+        5: '市值大于1000亿',
+        6: ''
+    };
+    var text = texts[type] || '';
+    document.getElementById('promptInput').value = text;
+    runScreener();
+}
+
+function setIfindQuery(text) {
+    document.getElementById('ifindInput').value = text;
+    runIfindSearch();
+}
+
+function copyCode(code, name) {
+    try {
+        navigator.clipboard.writeText(code);
+        alert(name + ' (' + code + ') 已复制到剪贴板');
+    } catch(e) {
+        alert('股票代码: ' + code);
+    }
+}
+
+// ==================== LIBRARY ====================
+function renderLibrary() {
+    var items = [
+        { icon: '&#x1F4B0;', text: '低估值高股息：PE低于15、股息率高于3%、市值大于200亿', cat: '价值' },
+        { icon: '&#x1F4CA;', text: '高ROE龙头：ROE大于15%、市值大于500亿', cat: '价值' },
+        { icon: '&#x1F680;', text: '高成长：净利润增速大于30%、营收增速大于20%', cat: '成长' },
+        { icon: '&#x1F3CB;', text: '机构重仓：基金持股大于5%、北向资金大于3%', cat: '机构' },
+        { icon: '&#x1F30D;', text: '大盘蓝筹：市值大于3000亿', cat: '配置' },
+        { icon: '&#x1F4BC;', text: '银行稳健：PE低于8、股息率高于4%', cat: '价值' },
+        { icon: '&#x1F3E0;', text: '家电龙头：行业为家电、ROE大于15%', cat: '行业' },
+        { icon: '&#x1F37B;', text: '白酒消费：行业为白酒、股息率高于2%', cat: '行业' },
+        { icon: '&#x2695;', text: '医药龙头：行业为医药、ROE大于10%', cat: '行业' },
+        { icon: '&#x26A1;', text: '科技成长：行业为科技或AI、净利润增速大于20%', cat: '成长' },
+    ];
+
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        html += '<div class="library-item" onclick="useLibrary(\'' + item.text.replace(/'/g, "\\'") + '\')">' +
+            '<span class="icon">' + item.icon + '</span>' +
+            '<span class="text">' + item.text + '</span>' +
+            '<span class="cat-tag">' + item.cat + '</span>' +
+        '</div>';
+    }
+    document.getElementById('libraryItems').innerHTML = html;
+}
+
+function useLibrary(text) {
+    document.getElementById('promptInput').value = text;
+    runScreener();
+}
+</script>
+</body>
+</html>

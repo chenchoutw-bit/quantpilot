@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global QuantPilot Capital - 投资指挥中心</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a; --bg-card: rgba(15,21,36,0.85);
+            --border-color: rgba(255,255,255,0.06); --border-active: rgba(102,126,234,0.5);
+            --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #475569;
+            --accent-purple: #818cf8; --accent-blue: #38bdf8; --accent-green: #34d399;
+            --accent-red: #f87171; --accent-orange: #fb923c; --accent-yellow: #fbbf24; --accent-pink: #f472b6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+        .bg-grid { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(102,126,234,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(102,126,234,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+        .bg-glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; filter: blur(150px); opacity: 0.07; pointer-events: none; z-index: 0; }
+        .bg-glow-1 { top: -200px; left: -200px; background: #667eea; }
+        .bg-glow-2 { bottom: -200px; right: -200px; background: #f7971e; }
+        .container { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 0 32px 60px; }
+
+        .header { padding: 24px 0 32px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .brand { display: flex; align-items: center; gap: 16px; }
+        .brand-icon { width: 52px; height: 52px; background: linear-gradient(135deg,#667eea,#764ba2); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 0 30px rgba(102,126,234,0.15); }
+        .brand-info h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(135deg,#fff 0%,#a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .time-display { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); padding: 8px 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; }
+        .refresh-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.3); border-radius: 8px; color: var(--accent-purple); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .refresh-btn:hover { background: rgba(102,126,234,0.2); }
+        .refresh-btn.loading svg { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .market-ticker { display: flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 40px; }
+        .ticker-item { flex: 1; padding: 14px 16px; border-right: 1px solid var(--border-color); min-width: 0; transition: background 0.2s; }
+        .ticker-item:last-child { border-right: none; }
+        .ticker-item:hover { background: rgba(255,255,255,0.02); }
+        .ticker-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ticker-value { font-size: 15px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .ticker-change { font-size: 12px; font-weight: 600; margin-left: 5px; }
+        .ticker-change.up { color: var(--accent-red); }
+        .ticker-change.down { color: var(--accent-green); }
+        .ticker-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+        .ticker-loading { color: var(--text-muted); font-size: 13px; }
+
+        .section { margin-bottom: 48px; }
+        .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .section-title { font-size: 18px; font-weight: 700; }
+        .section-subtitle { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+        .section-line { flex: 1; height: 1px; background: var(--border-color); margin-left: 12px; }
+
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .card-grid.cols-2 { grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+        .card-grid.narrow { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+
+        .tool-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.25s ease; text-decoration: none; color: inherit; display: block; position: relative; overflow: hidden; }
+        .tool-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(135deg,#667eea,#764ba2); opacity: 0; transition: opacity 0.25s; }
+        .tool-card:hover { border-color: var(--border-active); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 30px rgba(102,126,234,0.15); }
+        .tool-card:hover::before { opacity: 1; }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .card-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: rgba(102,126,234,0.12); color: var(--accent-purple); border: 1px solid rgba(102,126,234,0.2); white-space: nowrap; }
+        .card-badge.hot { background: rgba(251,146,60,0.12); color: var(--accent-orange); border-color: rgba(251,146,60,0.2); }
+        .card-badge.report { background: rgba(251,191,36,0.12); color: var(--accent-yellow); border-color: rgba(251,191,36,0.2); }
+        .card-badge.script { background: rgba(52,211,153,0.12); color: var(--accent-green); border-color: rgba(52,211,153,0.2); }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .card-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+        .card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+        .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tag { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; background: rgba(255,255,255,0.04); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.06); }
+        .tag.red { background: rgba(248,113,113,0.1); color: var(--accent-red); border-color: rgba(248,113,113,0.15); }
+        .tag.green { background: rgba(52,211,153,0.1); color: var(--accent-green); border-color: rgba(52,211,153,0.15); }
+        .tag.blue { background: rgba(56,189,248,0.1); color: var(--accent-blue); border-color: rgba(56,189,248,0.15); }
+        .tag.orange { background: rgba(251,146,60,0.1); color: var(--accent-orange); border-color: rgba(251,146,60,0.15); }
+        .tag.purple { background: rgba(129,140,248,0.1); color: var(--accent-purple); border-color: rgba(129,140,248,0.15); }
+        .tag.yellow { background: rgba(251,191,36,0.1); color: var(--accent-yellow); border-color: rgba(251,191,36,0.15); }
+        .tag.pink { background: rgba(244,114,182,0.1); color: var(--accent-pink); border-color: rgba(244,114,182,0.15); }
+
+        .report-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: inherit; display: block; }
+        .report-card:hover { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.02); }
+        .report-date { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+        .report-title { font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.4; margin-bottom: 10px; }
+        .report-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .script-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: inherit; }
+        .script-item:hover { border-color: rgba(52,211,153,0.3); background: rgba(52,211,153,0.02); }
+        .script-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .script-name { font-size: 13px; font-weight: 600; }
+        .script-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .mini-tabs { display: flex; gap: 4px; margin-bottom: 14px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 10px; width: fit-content; }
+        .mini-tab { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.2s; border: none; background: transparent; }
+        .mini-tab.active { background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; box-shadow: 0 2px 8px rgba(102,126,234,0.3); }
+        .mini-tab:hover:not(.active) { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .banner { background: linear-gradient(135deg,rgba(102,126,234,0.1) 0%,rgba(118,75,162,0.1) 100%); border: 1px solid rgba(102,126,234,0.2); border-radius: 16px; padding: 24px 28px; margin-bottom: 40px; display: flex; align-items: center; gap: 20px; }
+        .banner-icon { width: 52px; height: 52px; background: linear-gradient(135deg,#667eea,#764ba2); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; box-shadow: 0 0 30px rgba(102,126,234,0.15); }
+        .banner-content h2 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+        .banner-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .banner-stats { display: flex; gap: 28px; margin-left: auto; flex-shrink: 0; }
+        .banner-stat { text-align: center; }
+        .banner-stat-value { font-size: 22px; font-weight: 800; background: linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'JetBrains Mono', monospace; }
+        .banner-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .footer { text-align: center; padding: 40px 0 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 12px; line-height: 1.8; }
+        .footer a { color: var(--accent-purple); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 900px) {
+            .container { padding: 0 16px 40px; }
+            .banner { flex-direction: column; text-align: center; }
+            .banner-stats { margin-left: 0; }
+            .card-grid, .card-grid.cols-2 { grid-template-columns: 1fr; }
+            .market-ticker { flex-wrap: wrap; }
+            .ticker-item { min-width: 50%; border-bottom: 1px solid var(--border-color); }
+            .header-top { flex-direction: column; gap: 12px; }
+        }
+        @media (max-width: 600px) {
+            .market-ticker { flex-direction: column; }
+            .ticker-item { min-width: 100%; }
+            .banner-stats { gap: 16px; }
+            .banner-stat-value { font-size: 18px; }
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .section { animation: fadeInUp 0.5s ease forwards; }
+        .section:nth-child(2) { animation-delay: 0.05s; }
+        .section:nth-child(3) { animation-delay: 0.1s; }
+        .section:nth-child(4) { animation-delay: 0.15s; }
+        .section:nth-child(5) { animation-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-top">
+                <div class="brand">
+                    <div class="brand-icon">📊</div>
+                    <div class="brand-info">
+                        <h1>Global QuantPilot Capital</h1>
+                        <p>AI量化投资分析系统 · 投资指挥中心</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="time-display" id="clock">--:--:--</div>
+                    <button class="refresh-btn" id="refreshBtn" onclick="refreshMarketData()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        刷新数据
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARKET TICKER -->
+        <div class="market-ticker">
+            <div class="ticker-item"><div class="ticker-label">黄金 XAU</div><div><span class="ticker-value" id="t-gold"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-gold-meta"></div></div>
+            <div class="ticker-item"><div class="ticker-label">WTI 原油</div><div><span class="ticker-value" id="t-wti"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-wti-meta"></div></div>
+            <div class="ticker-item"><div class="ticker-label">布伦特</div><div><span class="ticker-value" id="t-brent"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-brent-meta"></div></div>
+            <div class="ticker-item"><div class="ticker-label">标普 500</div><div><span class="ticker-value" id="t-spx"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-spx-meta"></div></div>
+            <div class="ticker-item"><div class="ticker-label">沪深 300</div><div><span class="ticker-value" id="t-hs300"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-hs300-meta"></div></div>
+            <div class="ticker-item"><div class="ticker-label">纳斯达克</div><div><span class="ticker-value" id="t-ndx"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-ndx-meta"></div></div>
+            <div class="ticker-item"><div class="ticker-label">恐慌指数 VIX</div><div><span class="ticker-value" id="t-vix"><span class="ticker-loading">加载中...</span></span></div><div class="ticker-meta" id="t-vix-meta"></div></div>
+        </div>
+
+        <!-- BANNER -->
+        <div class="banner">
+            <div class="banner-icon">🚀</div>
+            <div class="banner-content">
+                <h2>欢迎使用投资指挥中心</h2>
+                <p>整合全球市场数据、AI量化分析工具、风险管理系统，一站式完成投资研究与决策。</p>
+            </div>
+            <div class="banner-stats">
+                <div class="banner-stat"><div class="banner-stat-value">12</div><div class="banner-stat-label">分析工具</div></div>
+                <div class="banner-stat"><div class="banner-stat-value">12</div><div class="banner-stat-label">分析报告</div></div>
+                <div class="banner-stat"><div class="banner-stat-value">24</div><div class="banner-stat-label">数据脚本</div></div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 1: 核心工具 ===== -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);">🎯</div>
+                <div class="section-title">核心工具</div>
+                <div class="section-subtitle">每天必用</div>
+                <div class="section-line"></div>
+            </div>
+            <div class="card-grid">
+                <a href="投资指挥中心-整合看板.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);">🎯</div><span class="card-badge hot">核心</span></div>
+                    <div class="card-title">投资指挥中心</div>
+                    <div class="card-subtitle">综合看板 · 核心入口</div>
+                    <div class="card-desc">整合所有市场数据、War Index五维评分、黄金三周期打分的综合展示平台。实时监控全球市场动态，动态计算投资信号。</div>
+                    <div class="card-tags"><span class="tag purple">War Index</span><span class="tag orange">黄金打分</span><span class="tag blue">实时数据</span></div>
+                </a>
+                <a href="Global QuantPilot 2.0.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);">🤖</div><span class="card-badge hot">AI研究</span></div>
+                    <div class="card-title">Global QuantPilot 2.0</div>
+                    <div class="card-subtitle">多Agent投资研究讨论</div>
+                    <div class="card-desc">5位AI研究员（事件/宏观/量化/风控/CIO）协作分析，输入任意市场问题获得专业投研建议。</div>
+                    <div class="card-tags"><span class="tag green">多Agent</span><span class="tag blue">AI研究</span><span class="tag">投资讨论</span></div>
+                </a>
+                <a href="Smart Screener.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#f7971e,#fb923c);">📈</div><span class="card-badge">选股</span></div>
+                    <div class="card-title">智能选股器</div>
+                    <div class="card-subtitle">上证50成分股筛选</div>
+                    <div class="card-desc">基于ROE、股息率、营收增速、净利润增速等指标筛选个股。支持基本面+技术面双维度排序，动态接入iFinD数据。</div>
+                    <div class="card-tags"><span class="tag orange">选股</span><span class="tag blue">基本面</span><span class="tag green">iFinD</span></div>
+                </a>
+                <a href="投研工作台.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);">🔬</div><span class="card-badge">数据</span></div>
+                    <div class="card-title">投研工作台</div>
+                    <div class="card-subtitle">数据源整合</div>
+                    <div class="card-desc">统一数据入口，整合新浪期货、腾讯财经、iFinD宏观数据源。实时行情、基本面数据一目了然。</div>
+                    <div class="card-tags"><span class="tag blue">新浪期货</span><span class="tag green">腾讯财经</span><span class="tag">iFinD</span></div>
+                </a>
+                <a href="投研工具矩阵.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#2c3e50,#4ca1af);">📋</div><span class="card-badge">索引</span></div>
+                    <div class="card-title">投研工具矩阵</div>
+                    <div class="card-subtitle">工具概览与说明</div>
+                    <div class="card-desc">所有投研工具的索引与说明，帮助快速找到所需工具，了解各工具的功能定位和使用方法。</div>
+                    <div class="card-tags"><span class="tag">工具索引</span><span class="tag">说明文档</span></div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 2: 风控与War Index ===== -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,#ff416c,#ff4b2b);">⚔️</div>
+                <div class="section-title">风控与War Index</div>
+                <div class="section-subtitle">地缘政治 · 风险评分</div>
+                <div class="section-line"></div>
+            </div>
+            <div class="card-grid">
+                <a href="war-index.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#ff416c,#ff4b2b);">⚔️</div><span class="card-badge hot">核心</span></div>
+                    <div class="card-title">War Index</div>
+                    <div class="card-subtitle">地缘政治风险评分系统</div>
+                    <div class="card-desc">五维评分系统：军事强度、能源冲击、市场反应、外交状态、供应链风险。自动输出仓位建议与调仓决策。</div>
+                    <div class="card-tags"><span class="tag red">地缘政治</span><span class="tag orange">风险评分</span><span class="tag">仓位建议</span></div>
+                </a>
+                <a href="War-Index-全天候看板.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);">🌍</div><span class="card-badge">扩展</span></div>
+                    <div class="card-title">War Index · 全天候看板</div>
+                    <div class="card-subtitle">桥水框架 × War Index</div>
+                    <div class="card-desc">将War Index评分与桥水全天候框架结合，识别当前经济周期，给出跨资产配置建议与仓位调整方案。</div>
+                    <div class="card-tags"><span class="tag yellow">全天候</span><span class="tag">桥水</span><span class="tag">跨资产</span></div>
+                </a>
+                <a href="Portfolio Doctor.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);">🏥</div><span class="card-badge">诊断</span></div>
+                    <div class="card-title">组合医生</div>
+                    <div class="card-subtitle">投资组合健康诊断</div>
+                    <div class="card-desc">诊断投资组合的健康度，检查仓位集中度、相关性风险、风险收益比等关键指标，给出优化建议。</div>
+                    <div class="card-tags"><span class="tag purple">组合分析</span><span class="tag green">风险诊断</span><span class="tag">资产配置</span></div>
+                </a>
+                <a href="数字货币风控归因系统.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#2c3e50,#4ca1af);">₿</div><span class="card-badge">加密</span></div>
+                    <div class="card-title">数字货币风控系统</div>
+                    <div class="card-subtitle">加密资产归因分析</div>
+                    <div class="card-desc">针对数字货币资产的专项风控系统，监控归因分析、仓位管理、止损提醒，支持BTC/ETH/主流山寨币。</div>
+                    <div class="card-tags"><span class="tag">数字货币</span><span class="tag orange">风控</span><span class="tag">归因</span></div>
+                </a>
+                <a href="Event Impact Analyzer.html" class="tool-card">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#ec4899,#f472b6);">📡</div><span class="card-badge">事件</span></div>
+                    <div class="card-title">事件影响分析器</div>
+                    <div class="card-subtitle">宏观事件对市场的影响</div>
+                    <div class="card-desc">输入宏观事件（地缘冲突、政策变化等），分析其对各类资产的影响方向与幅度，辅助投资决策。</div>
+                    <div class="card-tags"><span class="tag pink">事件驱动</span><span class="tag blue">宏观</span><span class="tag">影响分析</span></div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 3: 分析报告 ===== -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);">📑</div>
+                <div class="section-title">分析报告</div>
+                <div class="section-subtitle">研究报告 · 市场评估</div>
+                <div class="section-line"></div>
+            </div>
+            <div class="card-grid cols-2">
+                <div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:600;">📅 晚间市场评估报告</div>
+                    <div style="display:grid;gap:10px;">
+                        <a href="晚间市场评估报告-2026-04-08.html" class="report-card"><div class="report-date">2026-04-08 晚间</div><div class="report-title">晚间市场评估报告 · 2026-04-08</div><div class="report-meta"><span class="tag yellow">最新</span><span class="tag">宏观</span><span class="tag red">美伊局势</span></div></a>
+                        <a href="晚间市场评估报告-2026-04-07.html" class="report-card"><div class="report-date">2026-04-07 晚间</div><div class="report-title">晚间市场评估报告 · 2026-04-07</div><div class="report-meta"><span class="tag">宏观</span><span class="tag red">黄金</span></div></a>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:600;">⚔️ 美伊战争战报</div>
+                    <div style="display:grid;gap:10px;">
+                        <a href="war-report-20260327-1900.html" class="report-card"><div class="report-date">2026-03-27 19:00</div><div class="report-title">美伊战争 · 晚间战报 0327</div><div class="report-meta"><span class="tag red">战报</span><span class="tag">能源</span><span class="tag">地缘</span></div></a>
+                        <a href="war-report-20260327-1200.html" class="report-card"><div class="report-date">2026-03-27 12:00</div><div class="report-title">美伊战争 · 午间战报 0327</div><div class="report-meta"><span class="tag red">战报</span><span class="tag">午间</span></div></a>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:600;">🏢 公司研究报告</div>
+                    <div style="display:grid;gap:10px;">
+                        <a href="3289-宜特-投资分析报告-20260323.html" class="report-card"><div class="report-date">2026-03-23 · 宜特</div><div class="report-title">3289 宜特 · 投资分析报告</div><div class="report-meta"><span class="tag blue">A股</span><span class="tag">公司分析</span></div></a>
+                        <a href="台股綜合分析報告-萬潤-欣興-大跌原因-20260324.html" class="report-card"><div class="report-date">2026-03-24 · 台股</div><div class="report-title">台股综合分析 · 万润/欣兴 大跌原因</div><div class="report-meta"><span class="tag pink">台股</span><span class="tag">公司分析</span></div></a>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:600;">📊 专题研究报告</div>
+                    <div style="display:grid;gap:10px;">
+                        <a href="量化中性产品比较报告-统计套利+期现+CTA-20260325.html" class="report-card"><div class="report-date">2026-03-25 · 量化</div><div class="report-title">量化中性产品比较报告 · 统计套利+期现+CTA</div><div class="report-meta"><span class="tag green">量化</span><span class="tag">对冲</span></div></a>
+                        <a href="临时会议资料-市场波动讨论-20260323.html" class="report-card"><div class="report-date">2026-03-23 · 会议</div><div class="report-title">临时会议资料 · 市场波动讨论</div><div class="report-meta"><span class="tag">会议</span><span class="tag red">市场波动</span></div></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 4: 数据与脚本 ===== -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);">⚡</div>
+                <div class="section-title">数据与脚本</div>
+                <div class="section-subtitle">自动化 · 数据更新</div>
+                <div class="section-line"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:20px;">
+                <a href="scripts/update-market-data.bat" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);font-size:16px;">🔄</div><div style="flex:1;min-width:0;"><div class="script-name">更新市场数据</div><div class="script-desc">抓取黄金/原油/指数实时价格</div></div><span class="tag green">实时</span></a>
+                <a href="更新选股器数据.bat" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#f7971e,#fb923c);font-size:16px;">📊</div><div style="flex:1;min-width:0;"><div class="script-name">更新选股器数据</div><div class="script-desc">获取iFinD基本面数据并更新选股器</div></div><span class="tag orange">iFinD</span></a>
+                <a href="scripts/send-notification.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:16px;">📤</div><div style="flex:1;min-width:0;"><div class="script-name">飞书通知推送</div><div class="script-desc">推送晨报/晚报到飞书机器人</div></div><span class="tag purple">飞书</span></a>
+                <a href="scripts/market-data-server.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);font-size:16px;">🌐</div><div style="flex:1;min-width:0;"><div class="script-name">本地数据服务</div><div class="script-desc">Node.js HTTP服务，端口3847</div></div><span class="tag blue">服务</span></a>
+            </div>
+            <div class="mini-tabs">
+                <button class="mini-tab active" onclick="switchTab('feishu')">飞书脚本</button>
+                <button class="mini-tab" onclick="switchTab('ima')">IMA笔记</button>
+                <button class="mini-tab" onclick="switchTab('other')">其他脚本</button>
+            </div>
+            <div id="tab-feishu" class="tab-content active">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+                    <a href="scripts/feishu-send-msg.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">✉️</div><div style="flex:1;min-width:0;"><div class="script-name">发送消息</div><div class="script-desc">飞书发消息脚本</div></div></a>
+                    <a href="scripts/feishu-upload-file.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">📎</div><div style="flex:1;min-width:0;"><div class="script-name">上传文件</div><div class="script-desc">飞书文件上传脚本</div></div></a>
+                    <a href="scripts/feishu-newdoc.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">📄</div><div style="flex:1;min-width:0;"><div class="script-name">创建文档</div><div class="script-desc">飞书云文档创建</div></div></a>
+                    <a href="scripts/feishu-upload-final.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">✅</div><div style="flex:1;min-width:0;"><div class="script-name">完整上传</div><div class="script-desc">上传到IMA笔记（修复编码）</div></div></a>
+                    <a href="scripts/feishu-verify.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">🔑</div><div style="flex:1;min-width:0;"><div class="script-name">凭证验证</div><div class="script-desc">验证飞书API凭证</div></div></a>
+                </div>
+            </div>
+            <div id="tab-ima" class="tab-content">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+                    <a href="upload-to-ima.ps1" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);font-size:14px;">📤</div><div style="flex:1;min-width:0;"><div class="script-name">上传到IMA</div><div class="script-desc">PowerShell IMA上传（含UTF8修复）</div></div></a>
+                    <a href="upload-utf8.ps1" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);font-size:14px;">🔧</div><div style="flex:1;min-width:0;"><div class="script-name">UTF8上传</div><div class="script-desc">PowerShell 5.1编码修复版</div></div></a>
+                    <a href="feishu-upload.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);font-size:14px;">📤</div><div style="flex:1;min-width:0;"><div class="script-name">飞书IMA上传</div><div class="script-desc">Node.js飞书+IMA联合上传</div></div></a>
+                </div>
+            </div>
+            <div id="tab-other" class="tab-content">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+                    <a href="scripts/feishu-check.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);font-size:14px;">🔍</div><div style="flex:1;min-width:0;"><div class="script-name">飞书内容检查</div><div class="script-desc">检查飞书聊天记录</div></div></a>
+                    <a href="scripts/feishu-find-chat.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);font-size:14px;">💬</div><div style="flex:1;min-width:0;"><div class="script-name">查找聊天</div><div class="script-desc">搜索飞书对话记录</div></div></a>
+                    <a href="scripts/fetch_macro_benchmark.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);font-size:14px;">📈</div><div style="flex:1;min-width:0;"><div class="script-name">宏观基准数据</div><div class="script-desc">获取iFinD宏观利率/VIX数据</div></div></a>
+                    <a href="scripts/fetch_screener_data.py" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);font-size:14px;">📊</div><div style="flex:1;min-width:0;"><div class="script-name">选股数据抓取</div><div class="script-desc">Python获取选股器财务数据</div></div></a>
+                    <a href="convert-to-pdf.ps1" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">📑</div><div style="flex:1;min-width:0;"><div class="script-name">导出PDF</div><div class="script-desc">将HTML报告导出为PDF</div></div></a>
+                    <a href="scripts/feishu-share.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">🔗</div><div style="flex:1;min-width:0;"><div class="script-name">分享文档</div><div class="script-desc">飞书文档分享设置</div></div></a>
+                    <a href="scripts/feishu-rename.js" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;">✏️</div><div style="flex:1;min-width:0;"><div class="script-name">重命名文档</div><div class="script-desc">修改飞书云文档名称</div></div></a>
+                    <a href="scripts/fetch_market_data.py" class="script-item"><div class="script-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);font-size:14px;">💹</div><div style="flex:1;min-width:0;"><div class="script-name">行情数据抓取</div><div class="script-desc">Python抓取新浪/腾讯市场数据</div></div></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 5: 外部项目 ===== -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);">🔗</div>
+                <div class="section-title">外部项目</div>
+                <div class="section-subtitle">独立系统 · 深度功能</div>
+                <div class="section-line"></div>
+            </div>
+            <div class="card-grid">
+                <a href="../20260327214612/AI_fund_manager/dashboard.html" class="tool-card" target="_blank">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);">🤖</div><span class="card-badge">量化</span></div>
+                    <div class="card-title">AI量化基金</div>
+                    <div class="card-subtitle">浙商证券AI基金经理策略</div>
+                    <div class="card-desc">基于浙商证券《AI基金经理》研报的量化策略，上证50成分股择时交易，包含技术分析引擎、组合管理器、回测框架。</div>
+                    <div class="card-tags"><span class="tag green">量化策略</span><span class="tag blue">AI基金</span><span class="tag">回测系统</span></div>
+                </a>
+                <a href="../桥水全天候组合/" class="tool-card" target="_blank">
+                    <div class="card-top"><div class="card-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);">🌍</div><span class="card-badge">配置</span></div>
+                    <div class="card-title">桥水全天候组合</div>
+                    <div class="card-subtitle">All Weather Portfolio</div>
+                    <div class="card-desc">桥水全天候投资框架：股票35%+债券30%+商品25%+黄金5%+现金5%。每日07:30自动生成晨报，IMA笔记自动上传。</div>
+                    <div class="card-tags"><span class="tag yellow">全天候</span><span class="tag orange">资产配置</span><span class="tag green">风险平价</span></div>
+                </a>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>Global QuantPilot Capital · AI量化投资分析系统</p>
+            <p style="margin-top:8px;">数据源: <a href="投研工作台.html">新浪期货</a> · <a href="投研工作台.html">腾讯财经</a> · <a href="Smart Screener.html">iFinD宏观</a> &nbsp;|&nbsp; <a href="投资框架文档.md">投资框架</a> &nbsp;|&nbsp; <a href="工具导航页.html">旧版导航</a> &nbsp;|&nbsp; 最后更新: 2026-04-08</p>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2,'0');
+            const m = String(now.getMinutes()).padStart(2,'0');
+            const s = String(now.getSeconds()).padStart(2,'0');
+            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        async function loadMarketData() {
+            try {
+                const resp = await fetch('http://localhost:3847/api/market', { signal: AbortSignal.timeout(5000) });
+                if (resp.ok) { renderMarketData(await resp.json()); return; }
+            } catch(e) {}
+            try {
+                const resp2 = await fetch('scripts/market_data.json?t=' + Date.now(), { signal: AbortSignal.timeout(5000) });
+                if (resp2.ok) { renderMarketData(await resp2.json()); return; }
+            } catch(e2) {}
+            ['gold','wti','brent','spx','hs300','ndx','vix'].forEach(id => {
+                const el = document.getElementById('t-' + id);
+                if (el) el.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">需刷新</span>';
+            });
+        }
+
+        function renderMarketData(data) {
+            if (!data || !data.data) return;
+            const items = {};
+            data.data.forEach(item => { items[item.key] = item; });
+            const setters = {
+                'hf_GC': ['gold','$',2], 'hf_CL': ['wti','$',2], 'hf_OIL': ['brent','$',2],
+                'usINX': ['spx','',2], 'sh000300': ['hs300','',2], 'usNDX': ['ndx','',2]
+            };
+            Object.entries(setters).forEach(([key, [id, unit, dp]]) => {
+                const el = document.getElementById('t-' + id);
+                const item = items[key];
+                if (!el) return;
+                if (item) {
+                    const up = item.change >= 0;
+                    el.innerHTML = `${unit}${item.price.toFixed(dp)}<span class="ticker-change ${up?'up':'down'}">${up?'+':''}${item.changePercent.toFixed(2)}%</span>`;
+                } else { el.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">—</span>'; }
+            });
+            const vixEl = document.getElementById('t-vix');
+            if (vixEl) {
+                if (data.vix !== undefined) {
+                    vixEl.innerHTML = `${data.vix.toFixed(2)}`;
+                } else if (items['vix']) {
+                    vixEl.innerHTML = `${items['vix'].price.toFixed(2)}`;
+                }
+            }
+        }
+
+        async function refreshMarketData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> 刷新中...';
+            await loadMarketData();
+            btn.classList.remove('loading');
+            const t = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> ✅ ' + t;
+            setTimeout(() => {
+                btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> 刷新数据';
+            }, 3000);
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.mini-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.mini-tab[onclick="switchTab('${name}')"]`).classList.add('active');
+            document.getElementById('tab-' + name).classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMarketData);
+    </script>
+</body>
+</html>

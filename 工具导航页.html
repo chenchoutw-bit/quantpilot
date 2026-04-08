@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global QuantPilot Capital - 投资工具导航（旧版）</title>
+    <meta http-equiv="refresh" content="0;url=投资指挥中心.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            color: #8892b0;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .version {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Market Status Bar */
+        .market-status {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 50px;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .market-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .market-label {
+            color: #8892b0;
+            font-size: 13px;
+        }
+
+        .market-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .up { color: #ef4444; }
+        .down { color: #22c55e; }
+
+        /* Section Title */
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            padding-left: 4px;
+        }
+
+        /* Card Grid */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .icon-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .icon-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .icon-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .icon-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .icon-gold { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); }
+        .icon-dark { background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: #8892b0;
+        }
+
+        .card-desc {
+            color: #b8bcd4;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: rgba(102, 126, 234, 0.15);
+            color: #a5b4fc;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tag-new {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .action-btn.primary:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: #5a6380;
+            font-size: 13px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .market-status {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">Global QuantPilot Capital</div>
+            </div>
+            <div class="tagline">AI量化投资分析系统 · 统一工作台</div>
+            <span class="version">v2.0 · 2026-04-06</span>
+        </div>
+
+        <!-- Market Status -->
+        <div class="market-status" id="marketStatus">
+            <div class="market-item">
+                <span class="market-label">黄金</span>
+                <span class="market-value" id="goldPrice">加载中...</span>
+            </div>
+            <div class="market-item">
+                <span class="market-label">WTI原油</span>
+                <span class="market-value" id="wtiPrice">加载中...</span>
+            </div>
+            <div class="market-item">
+                <span class="market-label">布伦特</span>
+                <span class="market-value" id="brentPrice">加载中...</span>
+            </div>
+            <div class="market-item">
+                <span class="market-label">标普500</span>
+                <span class="market-value" id="spxPrice">加载中...</span>
+            </div>
+            <div class="market-item">
+                <span class="market-label">沪深300</span>
+                <span class="market-value" id="hs300Price">加载中...</span>
+            </div>
+            <div class="market-item">
+                <span class="market-label">VIX</span>
+                <span class="market-value" id="vixPrice">加载中...</span>
+            </div>
+        </div>
+
+        <!-- Main Tools -->
+        <div class="section-title">核心工具</div>
+        <div class="card-grid">
+            <a href="投资指挥中心-整合看板.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-primary">🎯</div>
+                    <div>
+                        <div class="card-title">投资指挥中心</div>
+                        <div class="card-subtitle">综合看板 · 核心入口</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    整合所有市场数据、War Index五维评分、黄金三周期打分的综合展示平台。实时监控全球市场动态，动态计算投资信号。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">War Index</span>
+                    <span class="tag">黄金打分</span>
+                    <span class="tag tag-new">动态评分</span>
+                </div>
+            </a>
+
+            <a href="Global QuantPilot 2.0.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-success">🤖</div>
+                    <div>
+                        <div class="card-title">Global QuantPilot 2.0</div>
+                        <div class="card-subtitle">多Agent研究讨论</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    5位AI研究员（事件/宏观/量化/风控/CIO）协作分析，输入任意市场问题获得专业投研建议。支持关税、黄金、FOMC等话题。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">多Agent</span>
+                    <span class="tag">AI研究</span>
+                    <span class="tag">投资讨论</span>
+                </div>
+            </a>
+
+            <a href="投研工作台.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-info">🔬</div>
+                    <div>
+                        <div class="card-title">投研工作台</div>
+                        <div class="card-subtitle">数据源整合</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    统一数据入口，整合新浪期货、腾讯财经、iFinD宏观数据源。实时行情、基本面数据一目了然。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">数据源</span>
+                    <span class="tag">实时行情</span>
+                    <span class="tag">iFinD</span>
+                </div>
+            </a>
+
+            <a href="Smart Screener.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-gold">📈</div>
+                    <div>
+                        <div class="card-title">智能选股器</div>
+                        <div class="card-subtitle">上证50成分股筛选</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    基于ROE、股息率、营收增速、净利润增速等指标筛选个股。支持基本面+技术面双维度排序。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">选股</span>
+                    <span class="tag">基本面</span>
+                    <span class="tag">上证50</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Specialized Tools -->
+        <div class="section-title">专项分析</div>
+        <div class="card-grid">
+            <a href="war-index.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-warning">⚔️</div>
+                    <div>
+                        <div class="card-title">War Index</div>
+                        <div class="card-subtitle">地缘政治风险评分</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    专注于地缘政治风险的五维评分系统：军事强度、能源冲击、市场反应、外交状态、供应链风险。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">地缘政治</span>
+                    <span class="tag">风险评分</span>
+                    <span class="tag">仓位建议</span>
+                </div>
+            </a>
+
+            <a href="Portfolio Doctor.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-primary">🏥</div>
+                    <div>
+                        <div class="card-title">组合医生</div>
+                        <div class="card-subtitle">投资组合诊断</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    诊断投资组合的健康度，检查仓位集中度、相关性风险、风险收益比等关键指标。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">组合分析</span>
+                    <span class="tag">风险诊断</span>
+                    <span class="tag">资产配置</span>
+                </div>
+            </a>
+
+            <a href="数字货币风控归因系统.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-dark">₿</div>
+                    <div>
+                        <div class="card-title">数字货币风控</div>
+                        <div class="card-subtitle">加密资产归因分析</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    针对数字货币资产的专项风控系统，监控归因分析、仓位管理、止损提醒。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">数字货币</span>
+                    <span class="tag">风控</span>
+                    <span class="tag">归因</span>
+                </div>
+            </a>
+
+            <a href="投研工具矩阵.html" class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-info">📋</div>
+                    <div>
+                        <div class="card-title">投研工具矩阵</div>
+                        <div class="card-subtitle">工具概览与说明</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    所有投研工具的索引与说明，帮助快速找到所需工具，了解各工具的功能定位。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">工具索引</span>
+                    <span class="tag">说明文档</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Other Projects -->
+        <div class="section-title">其他项目</div>
+        <div class="card-grid">
+            <a href="../20260327214612/AI_fund_manager/dashboard.html" class="card" target="_blank">
+                <div class="card-header">
+                    <div class="card-icon icon-success">🤖</div>
+                    <div>
+                        <div class="card-title">AI量化基金</div>
+                        <div class="card-subtitle">浙商证券AI基金经理策略</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    基于浙商证券《AI基金经理》研报的量化策略，上证50成分股择时交易。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">量化策略</span>
+                    <span class="tag">AI基金</span>
+                    <span class="tag">回测系统</span>
+                </div>
+            </a>
+
+            <a href="../桥水全天候组合/" class="card" target="_blank">
+                <div class="card-header">
+                    <div class="card-icon icon-gold">🌍</div>
+                    <div>
+                        <div class="card-title">桥水全天候组合</div>
+                        <div class="card-subtitle">All Weather Portfolio</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    桥水全天候投资框架：股票+债券+商品+黄金+现金，覆盖四种经济周期。
+                </div>
+                <div class="card-tags">
+                    <span class="tag">全天候</span>
+                    <span class="tag">资产配置</span>
+                    <span class="tag">风险平价</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section-title">快捷操作</div>
+        <div class="quick-actions">
+            <a href="javascript:void(0)" class="action-btn primary" onclick="refreshData()">
+                🔄 刷新市场数据
+            </a>
+            <a href="scripts/update-market-data.bat" class="action-btn">
+                📥 更新数据缓存
+            </a>
+            <a href="scripts/启动iFinD选股服务.bat" class="action-btn" onclick="startIfindService()">
+                🤖 启动iFinD选股
+            </a>
+            <a href="scripts/research_agent.html" class="action-btn" onclick="openResearch()">
+                📝 AI研究分析
+            </a>
+            <a href="scripts/send-notification.js" class="action-btn">
+                📤 测试推送通知
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Global QuantPilot Capital · AI量化投资分析系统</p>
+            <p style="margin-top: 8px;">
+                数据源: 新浪期货 · 腾讯财经 · iFinD宏观 &nbsp;|&nbsp;
+                <a href="投资框架文档.md">投资框架</a> &nbsp;|&nbsp;
+                最后更新: 2026-04-06
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Load market data from cached JSON or localStorage
+        async function loadMarketData() {
+            try {
+                // Try to fetch from local API
+                const response = await fetch('http://localhost:3847/api/market');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateMarketUI(data);
+                    return;
+                }
+            } catch (e) {
+                console.log('Local API not available, trying file...');
+            }
+
+            // Fallback: try to load from localStorage
+            const cached = localStorage.getItem('marketData');
+            if (cached) {
+                try {
+                    const data = JSON.parse(cached);
+                    updateMarketUI(data);
+                    return;
+                } catch (e) {}
+            }
+
+            // Show placeholder
+            document.getElementById('goldPrice').textContent = '需刷新';
+            document.getElementById('wtiPrice').textContent = '需刷新';
+            document.getElementById('brentPrice').textContent = '需刷新';
+            document.getElementById('spxPrice').textContent = '需刷新';
+            document.getElementById('hs300Price').textContent = '需刷新';
+            document.getElementById('vixPrice').textContent = '需刷新';
+        }
+
+        function updateMarketUI(data) {
+            if (!data || !data.data) return;
+
+            const items = {};
+            data.data.forEach(item => {
+                items[item.key] = item;
+            });
+
+            // Gold
+            if (items['hf_GC']) {
+                const g = items['hf_GC'];
+                const changeClass = g.change >= 0 ? 'up' : 'down';
+                const changeSign = g.change >= 0 ? '+' : '';
+                document.getElementById('goldPrice').innerHTML =
+                    `<span class="${changeClass}">$${g.price.toFixed(2)}</span> <small>${changeSign}${g.changePercent}%</small>`;
+            }
+
+            // WTI
+            if (items['hf_CL']) {
+                const w = items['hf_CL'];
+                const changeClass = w.change >= 0 ? 'up' : 'down';
+                const changeSign = w.change >= 0 ? '+' : '';
+                document.getElementById('wtiPrice').innerHTML =
+                    `<span class="${changeClass}">$${w.price.toFixed(2)}</span> <small>${changeSign}${w.changePercent}%</small>`;
+            }
+
+            // Brent
+            if (items['hf_OIL']) {
+                const b = items['hf_OIL'];
+                const changeClass = b.change >= 0 ? 'up' : 'down';
+                const changeSign = b.change >= 0 ? '+' : '';
+                document.getElementById('brentPrice').innerHTML =
+                    `<span class="${changeClass}">$${b.price.toFixed(2)}</span> <small>${changeSign}${b.changePercent}%</small>`;
+            }
+
+            // SPX
+            if (items['usINX']) {
+                const s = items['usINX'];
+                const changeClass = s.change >= 0 ? 'up' : 'down';
+                const changeSign = s.change >= 0 ? '+' : '';
+                document.getElementById('spxPrice').innerHTML =
+                    `<span class="${changeClass}">${s.price.toFixed(2)}</span> <small>${changeSign}${s.changePercent}%</small>`;
+            }
+
+            // HS300
+            if (items['sh000300']) {
+                const h = items['sh000300'];
+                const changeClass = h.change >= 0 ? 'up' : 'down';
+                const changeSign = h.change >= 0 ? '+' : '';
+                document.getElementById('hs300Price').innerHTML =
+                    `<span class="${changeClass}">${h.price.toFixed(2)}</span> <small>${changeSign}${h.changePercent}%</small>`;
+            }
+
+            // VIX (may be in fallback)
+            if (data.vix !== undefined) {
+                const vixClass = data.vix > 20 ? 'up' : 'down';
+                document.getElementById('vixPrice').innerHTML =
+                    `<span class="${vixClass}">${data.vix.toFixed(2)}</span>`;
+            } else {
+                document.getElementById('vixPrice').textContent = '—';
+            }
+
+            // Cache to localStorage
+            localStorage.setItem('marketData', JSON.stringify(data));
+        }
+
+        function refreshData() {
+            // Open the market data update batch file
+            window.open('scripts/update-market-data.bat', '_blank');
+            alert('正在刷新数据...\n\n请稍后重新打开此页面查看最新数据。');
+        }
+
+        function startIfindService() {
+            if (confirm('是否启动 iFinD 智能选股服务？\n\n启动后可在 Smart Screener 中使用 iFinD 全市场自然语言选股功能。')) {
+                window.open('scripts/启动iFinD选股服务.bat', '_blank');
+            }
+        }
+
+        function openResearch() {
+            alert('AI研究分析功能：\n\n请在 Global QuantPilot 2.0.html 中使用"研究员讨论"功能。');
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadMarketData);
+    </script>
+</body>
+</html>

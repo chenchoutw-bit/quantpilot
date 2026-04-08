@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global QuantPilot · 投研工具矩阵</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #0f1526;
+    --bg3: #161d35;
+    --card: #1a2240;
+    --card2: #1e2847;
+    --border: #2a3558;
+    --accent: #3b82f6;
+    --accent2: #6366f1;
+    --accent3: #8b5cf6;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 粒子背景 */
+  #particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    padding: 40px 0 0;
+    text-align: center;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 30px rgba(59,130,246,0.4);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+    50% { box-shadow: 0 0 40px rgba(59,130,246,0.6); }
+  }
+
+  .logo-text h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text p {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 2px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .tagline {
+    font-size: 15px;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .status-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .status-chip .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ===== 市场快讯条 ===== */
+  .ticker-bar {
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 40px;
+    animation: ticker 40s linear infinite;
+    white-space: nowrap;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .ticker-item .name { color: var(--text2); }
+  .ticker-item .val { color: var(--text); font-weight: 600; }
+  .ticker-item .chg.up { color: var(--red); }
+  .ticker-item .chg.down { color: var(--green); }
+
+  /* ===== 工具矩阵网格 ===== */
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text3);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 900px) {
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+
+  .tool-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+  }
+
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-accent, linear-gradient(90deg, #3b82f6, #8b5cf6));
+  }
+
+  .tool-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59,130,246,0.4);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(59,130,246,0.1);
+  }
+
+  .tool-card:hover .card-glow {
+    opacity: 1;
+  }
+
+  .card-glow {
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at center, rgba(59,130,246,0.05) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .card-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .card-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-live {
+    background: rgba(16,185,129,0.15);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+
+  .badge-new {
+    background: rgba(245,158,11,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .card-subtitle {
+    font-size: 13px;
+    color: var(--text3);
+    margin-bottom: 16px;
+  }
+
+  .card-desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .card-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .feature-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text3);
+  }
+
+  .card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cta-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: #60a5fa;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .tool-card:hover .cta-btn {
+    background: rgba(59,130,246,0.2);
+    border-color: rgba(59,130,246,0.5);
+  }
+
+  .cta-arrow {
+    font-size: 16px;
+    transition: transform 0.2s;
+  }
+
+  .tool-card:hover .cta-arrow {
+    transform: translateX(4px);
+  }
+
+  .card-stat {
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  /* ===== 工具1：Portfolio Doctor ===== */
+  .card-1 { --card-accent: linear-gradient(90deg, #10b981, #3b82f6); }
+  .card-1 .card-icon { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.2); }
+
+  /* ===== 工具2：Smart Screener ===== */
+  .card-2 { --card-accent: linear-gradient(90deg, #f59e0b, #ef4444); }
+  .card-2 .card-icon { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.2); }
+
+  /* ===== 工具3：Event Impact Analyzer ===== */
+  .card-3 { --card-accent: linear-gradient(90deg, #8b5cf6, #ec4899); }
+  .card-3 .card-icon { background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.2); }
+
+  /* ===== 工具4：Global QuantPilot 2.0 ===== */
+  .card-4 { --card-accent: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899); }
+  .card-4 .card-icon { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.2); }
+
+  /* ===== 快捷操作区 ===== */
+  .quick-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 900px) {
+    .quick-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .quick-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .quick-card:hover {
+    background: var(--card2);
+    border-color: rgba(59,130,246,0.3);
+  }
+
+  .quick-icon { font-size: 24px; margin-bottom: 8px; }
+  .quick-label { font-size: 13px; color: var(--text2); }
+
+  /* ===== 系统状态面板 ===== */
+  .status-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 700px) {
+    .status-panel { grid-template-columns: 1fr; }
+  }
+
+  .status-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .status-card h3 {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-list { list-style: none; }
+  .status-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .status-list li:last-child { border-bottom: none; }
+
+  .status-list .label { color: var(--text2); }
+  .status-list .val-ok {
+    color: var(--green);
+    font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .status-list .val-warn {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .war-score {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  .war-num {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .war-info h4 { font-size: 16px; color: var(--gold); }
+  .war-info p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  .war-bar {
+    height: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+
+  .war-fill {
+    height: 100%;
+    width: 68%;
+    background: linear-gradient(90deg, var(--green), var(--gold), var(--red));
+    border-radius: 4px;
+  }
+
+  .war-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* ===== 最新晨报摘要 ===== */
+  .morning-brief {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 48px;
+  }
+
+  .brief-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .brief-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .brief-time { font-size: 12px; color: var(--text3); }
+
+  .brief-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 700px) {
+    .brief-grid { grid-template-columns: 1fr; }
+  }
+
+  .brief-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .brief-item .item-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .brief-item .item-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .brief-item .item-sub {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .up-color { color: var(--red) !important; }
+  .down-color { color: var(--green) !important; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+    color: var(--text3);
+    font-size: 12px;
+    margin-top: 20px;
+  }
+
+  footer span {
+    color: #60a5fa;
+  }
+
+  /* ===== 悬浮快捷菜单 ===== */
+  .float-menu {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .float-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .float-btn:hover { transform: scale(1.1); }
+
+  .float-main {
+    width: 56px; height: 56px;
+    font-size: 24px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  }
+
+  .float-sub {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    font-size: 18px;
+    display: none;
+  }
+
+  .float-sub.visible { display: flex; }
+
+  /* ===== 工具内嵌 iframe 模态框 ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    width: 95vw;
+    height: 92vh;
+    background: var(--bg2);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .modal-close {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { background: rgba(239,68,68,0.2); color: var(--red); }
+
+  .modal-iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+  }
+
+  /* ===== loading ===== */
+  .loading-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+    background-size: 200%;
+    animation: loading 1.5s linear infinite;
+    border-radius: 2px;
+    margin-bottom: 2px;
+  }
+
+  @keyframes loading {
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
+  }
+
+  /* 数字滚动动画 */
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: countUp 0.6s ease forwards; }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<!-- 工具内嵌模态框 -->
+<div class="modal-overlay" id="toolModal">
+  <div class="modal-box">
+    <div class="loading-bar" id="loadingBar" style="display:none"></div>
+    <div class="modal-header">
+      <h3 id="modalTitle">工具</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <iframe class="modal-iframe" id="modalIframe" src="about:blank"></iframe>
+  </div>
+</div>
+
+<div class="container">
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="logo-row">
+      <div class="logo-icon">📊</div>
+      <div class="logo-text">
+        <h1>Global QuantPilot Capital</h1>
+        <p>投研工具矩阵 · Research Intelligence Platform</p>
+      </div>
+    </div>
+    <p class="tagline">专业级投研工具 · AI驱动 · 实时分析 · 智能决策</p>
+    <div class="status-bar">
+      <div class="status-chip"><div class="dot"></div>系统运行中</div>
+      <div class="status-chip">🕘 <span id="clock">--:--:--</span></div>
+      <div class="status-chip">📅 2026-04-04 周六</div>
+      <div class="status-chip">⚔️ War Index: 68 · 升级阶段</div>
+      <div class="status-chip">🏦 仓位: 70%</div>
+    </div>
+  </header>
+</div>
+
+<!-- 行情快讯条 -->
+<div class="ticker-bar">
+  <div class="ticker-inner" id="tickerInner">
+    <!-- 由JS生成，复制一次实现无缝滚动 -->
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== 工具矩阵 ===== -->
+  <div class="section-title">🛠 核心投研工具</div>
+
+  <div class="tools-grid">
+
+    <!-- Tool 1: Portfolio Doctor -->
+    <div class="tool-card card-1" onclick="openTool('Portfolio Doctor.html', '🏥 Portfolio Doctor · 组合诊断室')">
+      <div class="card-glow"></div>
+      <div class="card-header">
+        <div class="card-icon">🏥</div>
+        <span class="card-badge badge-live">● LIVE</span>
+      </div>
+      <div class="card-title">Portfolio Doctor</div>
+      <div class="card-subtitle">组合诊断室 · Portfolio Diagnostics</div>
+      <div class="card-desc">
+        对标国金AI投顾，360°全面体检你的持仓组合。风险归因、相关性热力图、夏普/最大回撤分析，精准识别组合健康问题并开具调仓处方。
+      </div>
+      <div class="card-features">
+        <span class="feature-tag">💊 风险打分</span>
+        <span class="feature-tag">🔥 相关性热图</span>
+        <span class="feature-tag">📉 回撤分析</span>
+        <span class="feature-tag">⚖️ 调仓建议</span>
+        <span class="feature-tag">🎯 预期收益</span>
+      </div>
+      <div class="card-cta">
+        <div class="cta-btn">进入工具 <span class="cta-arrow">→</span></div>
+        <div class="card-stat">适用：资产配置 · 风控检视</div>
+      </div>
+    </div>
+
+    <!-- Tool 2: Smart Screener -->
+    <div class="tool-card card-2" onclick="openTool('Smart Screener.html', '🔍 Smart Screener · 智能选股器')">
+      <div class="card-glow"></div>
+      <div class="card-header">
+        <div class="card-icon">🔍</div>
+        <span class="card-badge badge-live">● LIVE</span>
+      </div>
+      <div class="card-title">Smart Screener</div>
+      <div class="card-subtitle">智能选股器 · AI-Powered Stock Screener</div>
+      <div class="card-desc">
+        对标同花顺问财，多维度AI选股引擎。从1000+只股票中依据估值/成长/质量/动量/技术等因子快速筛选，实时评分并输出买卖信号。
+      </div>
+      <div class="card-features">
+        <span class="feature-tag">📊 五维因子</span>
+        <span class="feature-tag">💡 AI评分</span>
+        <span class="feature-tag">📋 自定义条件</span>
+        <span class="feature-tag">📡 板块筛选</span>
+        <span class="feature-tag">⚡ 实时信号</span>
+      </div>
+      <div class="card-cta">
+        <div class="cta-btn" style="border-color:rgba(245,158,11,0.3);color:#fbbf24;background:rgba(245,158,11,0.1)">进入工具 <span class="cta-arrow">→</span></div>
+        <div class="card-stat">适用：个股研究 · 机会挖掘</div>
+      </div>
+    </div>
+
+    <!-- Tool 3: Event Impact Analyzer -->
+    <div class="tool-card card-3" onclick="openTool('Event Impact Analyzer.html', '⚡ Event Impact Analyzer · 事件影响分析器')">
+      <div class="card-glow"></div>
+      <div class="card-header">
+        <div class="card-icon">⚡</div>
+        <span class="card-badge badge-new">✦ NEW</span>
+      </div>
+      <div class="card-title">Event Impact Analyzer</div>
+      <div class="card-subtitle">事件影响分析器 · Market Event Intelligence</div>
+      <div class="card-desc">
+        对标东财妙想投研助理，输入任何宏观事件/新闻，AI自动分析其对股债商黄金汇率的影响，生成利好利空传导链、时间维度与行动建议。
+      </div>
+      <div class="card-features">
+        <span class="feature-tag">🌐 8类事件</span>
+        <span class="feature-tag">📊 综合影响评分</span>
+        <span class="feature-tag">⏱ 时间维度</span>
+        <span class="feature-tag">📜 历史复盘</span>
+        <span class="feature-tag">🗓 事件日历</span>
+      </div>
+      <div class="card-cta">
+        <div class="cta-btn" style="border-color:rgba(139,92,246,0.3);color:#a78bfa;background:rgba(139,92,246,0.1)">进入工具 <span class="cta-arrow">→</span></div>
+        <div class="card-stat">适用：事件驱动 · 新闻解读</div>
+      </div>
+    </div>
+
+    <!-- Tool 4: Global QuantPilot 2.0 -->
+    <div class="tool-card card-4" onclick="openTool('Global QuantPilot 2.0.html', '🌐 Global QuantPilot 2.0 · 主动晨会系统')">
+      <div class="card-glow"></div>
+      <div class="card-header">
+        <div class="card-icon">🌐</div>
+        <span class="card-badge badge-new">✦ 2.0</span>
+      </div>
+      <div class="card-title">Global QuantPilot 2.0</div>
+      <div class="card-subtitle">主动晨会系统 · AI Morning Briefing</div>
+      <div class="card-desc">
+        对标华泰涨乐全球快讯，6大AI研究员协作生成每日晨报。实时数据仪表盘、多空辩论评分、资产配置评级、风险雷达、行动建议一站汇总。
+      </div>
+      <div class="card-features">
+        <span class="feature-tag">🤖 6位AI研究员</span>
+        <span class="feature-tag">📈 多空评分</span>
+        <span class="feature-tag">⏰ 07:30晨报</span>
+        <span class="feature-tag">🎯 行动议题</span>
+        <span class="feature-tag">🔔 推送设置</span>
+      </div>
+      <div class="card-cta">
+        <div class="cta-btn" style="border-color:rgba(99,102,241,0.3);color:#818cf8;background:rgba(99,102,241,0.1)">进入工具 <span class="cta-arrow">→</span></div>
+        <div class="card-stat">适用：每日晨会 · 全局研判</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== 快捷操作 ===== -->
+  <div class="section-title">⚡ 快捷操作</div>
+  <div class="quick-row">
+    <div class="quick-card" onclick="openTool('Global QuantPilot 2.0.html','🌐 今日晨报')">
+      <div class="quick-icon">☀️</div>
+      <div class="quick-label">今日晨报</div>
+    </div>
+    <div class="quick-card" onclick="openTool('Portfolio Doctor.html','🏥 组合体检')">
+      <div class="quick-icon">💊</div>
+      <div class="quick-label">组合体检</div>
+    </div>
+    <div class="quick-card" onclick="openTool('Smart Screener.html','🔍 快速选股')">
+      <div class="quick-icon">🔍</div>
+      <div class="quick-label">快速选股</div>
+    </div>
+    <div class="quick-card" onclick="openTool('Event Impact Analyzer.html','⚡ 事件分析')">
+      <div class="quick-icon">⚡</div>
+      <div class="quick-label">事件分析</div>
+    </div>
+  </div>
+
+  <!-- ===== 系统状态 ===== -->
+  <div class="section-title">📡 系统状态</div>
+  <div class="status-panel">
+
+    <div class="status-card">
+      <h3>🤖 自动化任务状态</h3>
+      <ul class="status-list">
+        <li><span class="label">Global QuantPilot 晨报</span><span class="val-ok">✓ 07:30 活跃</span></li>
+        <li><span class="label">桥水全天候晨报</span><span class="val-ok">✓ 07:30 活跃</span></li>
+        <li><span class="label">黄金晨报</span><span class="val-ok">✓ 07:30 活跃</span></li>
+        <li><span class="label">飞书通知推送</span><span class="val-ok">✓ 已连接</span></li>
+        <li><span class="label">IMA笔记上传</span><span class="val-ok">✓ 凭证有效</span></li>
+        <li><span class="label">AI基金经理系统</span><span class="val-ok">✓ 运行中</span></li>
+      </ul>
+    </div>
+
+    <div class="status-card">
+      <h3>⚔️ War Index · 地缘风险</h3>
+      <div class="war-score">
+        <div class="war-num">68</div>
+        <div class="war-info">
+          <h4>升级阶段</h4>
+          <p>建议仓位：70% · 保持防御</p>
+          <p style="margin-top:6px;font-size:12px;color:var(--text3)">美伊冲突持续 · 能源溢价高企</p>
+        </div>
+      </div>
+      <div class="war-bar"><div class="war-fill"></div></div>
+      <div class="war-labels">
+        <span>缓和 (0)</span>
+        <span>紧张 (30)</span>
+        <span>升级 (60)</span>
+        <span>危机 (100)</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== 最新晨报摘要 ===== -->
+  <div class="section-title">📋 今日市场快览</div>
+  <div class="morning-brief">
+    <div class="brief-header">
+      <h3>📊 全球核心指标 <span id="dataStatus" style="font-size:12px;font-weight:600">⏳ 数据加载中...</span> <span id="dataTime" style="font-size:12px;color:var(--text3);font-weight:400"></span></h3>
+      <div class="brief-time">上海 UTC+8</div>
+    </div>
+    <div id="weekendNote" class="brief-grid" style="display:none;margin-bottom:12px">
+      <div class="brief-item" style="grid-column:1/-1;border-left:3px solid var(--gold);background:rgba(245,158,11,0.08)">
+        <div class="item-label" style="color:var(--gold)">⚠️ 周末数据说明</div>
+        <div class="item-val" style="font-size:14px">部分数据为前一交易日收盘价（Stooq原油/天然气可能有1-3天延迟）</div>
+        <div class="item-sub">标普500/黄金/白银/VIX/沪深300 实时更新 | WTI/布伦特/天然气/DXY 数据可能有延迟</div>
+      </div>
+    </div>
+    <div class="brief-grid" id="briefGrid">
+      <!-- 由JS实时填充 -->
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 <span>Global QuantPilot Capital</span> · AI-Powered Investment Intelligence Platform</p>
+    <p style="margin-top:6px">4 Tools Active · War Index: 68 · 仓位建议: 70% · 宏观周期: 滞胀</p>
+  </footer>
+
+</div>
+
+<!-- 悬浮菜单 -->
+<div class="float-menu">
+  <button class="float-btn float-main" onclick="toggleFloatMenu()" title="快速启动">🚀</button>
+  <button class="float-btn float-sub" id="fb1" onclick="openTool('Global QuantPilot 2.0.html','🌐 晨报')" title="今日晨报">☀️</button>
+  <button class="float-btn float-sub" id="fb2" onclick="openTool('Portfolio Doctor.html','🏥 组合')" title="组合体检">💊</button>
+  <button class="float-btn float-sub" id="fb3" onclick="openTool('Smart Screener.html','🔍 选股')" title="选股器">🔍</button>
+  <button class="float-btn float-sub" id="fb4" onclick="openTool('Event Impact Analyzer.html','⚡ 事件')" title="事件分析">⚡</button>
+</div>
+
+<script>
+// ===== 粒子背景 =====
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const particles = [];
+for (let i = 0; i < 80; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    r: Math.random() * 1.5 + 0.5,
+    opacity: Math.random() * 0.4 + 0.1
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(99,102,241,${p.opacity})`;
+    ctx.fill();
+  });
+
+  // 连线
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(99,102,241,${0.06 * (1 - dist / 100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// ===== 时钟 =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN');
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ===== 真实数据获取 (新浪财经直连) =====
+// 数据源: 腾讯财经HTTPS直连 + 新浪财经期货
+// 新版: 2026-04-04 - 移除不稳定的CORS代理
+
+let liveData = {};
+
+// ===== 新浪期货数据获取 (WTI/布伦特/黄金/白银/天然气) =====
+async function sinaFuturesFetch(code) {
+  // 新浪期货格式: https://qt.gtimg.cn/q=hf_CL
+  // 返回格式: v_hf_CL="价格,涨跌幅,昨收,开盘,最高,最低,时间,...,名称";
+  try {
+    const url = `https://qt.gtimg.cn/q=${code}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const text = await res.text();
+    // 解析: v_hf_CL="112.23,12.10,112.04,112.06,113.97,97.50,04:59:59,...,名称";
+    const match = text.match(/="([^"]+)"/);
+    if (!match) return null;
+    const fields = match[1].split(',');
+    if (fields.length < 6) return null;
+    const price = parseFloat(fields[0]);
+    const changePct = parseFloat(fields[1]);
+    const prevClose = parseFloat(fields[2]);
+    if (isNaN(price)) return null;
+    return {
+      price,
+      changePct,
+      prevClose,
+      high: parseFloat(fields[4]),
+      low: parseFloat(fields[5]),
+      source: 'Sina Finance'
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// ===== 腾讯财经数据获取 (A股/美股指数/汇率) =====
+async function tencentFetch(code) {
+  // 腾讯财经格式: https://qt.gtimg.cn/q=sh600519
+  // A股指数: 1.000300(沪深300), 1.000001(上证), 0.399001(深证)
+  // 美股: usSPX(标普), usNDX(纳指)
+  // 汇率: ufxEURUSD
+  try {
+    const url = `https://qt.gtimg.cn/q=${code}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const match = text.match(/="([^"]+)"/);
+    if (!match) return null;
+    const fields = match[1].split('~');
+    // 格式: 0=名称, 1=当前价, 2=昨收, 3=开盘, 4=成交量, ...
+    // 38=涨跌幅%
+    const price = parseFloat(fields[1]);
+    const prevClose = parseFloat(fields[2]);
+    const changePct = parseFloat(fields[38]);
+    if (isNaN(price)) return null;
+    return {
+      price,
+      prevClose,
+      changePct,
+      source: 'Tencent Finance'
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// ===== 获取黄金/白银/白银（额外数据）=====
+async function fetchGoldSilver() {
+  // 黄金白银同时获取
+  try {
+    const url = 'https://qt.gtimg.cn/q=hf_GC,hf_SI';
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const result = {};
+    const lines = text.trim().split('\n');
+    for (const line of lines) {
+      const match = line.match(/v_(hf_\w+)="([^"]+)"/);
+      if (!match) continue;
+      const key = match[1].replace('hf_', '');
+      const fields = match[2].split(',');
+      if (fields.length >= 6) {
+        result[key] = {
+          price: parseFloat(fields[0]),
+          changePct: parseFloat(fields[1]),
+          prevClose: parseFloat(fields[2]),
+          source: 'Sina Finance'
+        };
+      }
+    }
+    return result;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ===== 获取VIX恐慌指数 =====
+// 尝试多个来源
+async function fetchVIX() {
+  // 来源1: 东方财富VIX期货
+  try {
+    const url = 'https://push2.eastmoney.com/api/qt/stock/get?secid=100.CFEVIX&fields=f43,f169,f170';
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const json = await res.json();
+      const data = json?.data;
+      if (data && data.f43) {
+        return {
+          price: data.f43 / 100,
+          changePct: data.f170 ? data.f170 / 100 : null,
+          source: 'Eastmoney VIX'
+        };
+      }
+    }
+  } catch (e) { /* continue */ }
+
+  // 来源2: 尝试新浪VIX
+  try {
+    const url = 'https://qt.gtimg.cn/q=hf_VIX';
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const text = await res.text();
+      if (!text.includes('none_match')) {
+        const match = text.match(/="([^"]+)"/);
+        if (match) {
+          const fields = match[1].split(',');
+          if (fields.length >= 2 && !isNaN(parseFloat(fields[0]))) {
+            return {
+              price: parseFloat(fields[0]),
+              changePct: parseFloat(fields[1]),
+              source: 'Sina VIX'
+            };
+          }
+        }
+      }
+    }
+  } catch (e) { /* continue */ }
+
+  return { price: null, source: 'N/A' };
+}
+
+// ===== 获取美债收益率 =====
+async function fetchBondYield() {
+  // 来源1: 东方财富美债
+  try {
+    const url = 'https://push2.eastmoney.com/api/qt/stock/get?secid=100.US10Y&fields=f43';
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const json = await res.json();
+      const data = json?.data;
+      if (data && data.f43) {
+        return {
+          price: data.f43 / 100, // 转为百分比
+          changePct: null,
+          source: 'Eastmoney Bond'
+        };
+      }
+    }
+  } catch (e) { /* continue */ }
+
+  // 来源2: 腾讯美债
+  try {
+    const url = 'https://qt.gtimg.cn/q=hf_TNX';
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const text = await res.text();
+      const match = text.match(/="([^"]+)"/);
+      if (match) {
+        const fields = match[1].split(',');
+        if (fields.length >= 2 && !isNaN(parseFloat(fields[0]))) {
+          return {
+            price: parseFloat(fields[0]) / 100, // 转为小数
+            changePct: parseFloat(fields[1]),
+            source: 'Sina Bond'
+          };
+        }
+      }
+    }
+  } catch (e) { /* continue */ }
+
+  return { price: null, source: 'N/A' };
+}
+
+function fmtVal(key, price) {
+  if (!price && price !== 0) return '--';
+  // 美债收益率已经是小数形式
+  if (key === 'tnx' && price < 10) return (price * 100).toFixed(2) + '%';
+  if (price > 10000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (price > 1000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return price.toFixed(2);
+}
+
+function fmtPct(pct) {
+  if (!pct && pct !== 0) return '--';
+  const s = pct >= 0 ? '+' : '';
+  return `${s}${pct.toFixed(2)}%`;
+}
+
+async function fetchAllData() {
+  // 并行获取所有数据 - 使用新浪/腾讯直连
+  const [wti, brent, gold, silver, ng, spx, csi, ndx] = await Promise.all([
+    sinaFuturesFetch('hf_CL'),    // WTI原油
+    sinaFuturesFetch('hf_OIL'),   // 布伦特
+    sinaFuturesFetch('hf_GC'),    // 黄金
+    sinaFuturesFetch('hf_SI'),    // 白银
+    sinaFuturesFetch('hf_NG'),    // 天然气
+    tencentFetch('usINX'),        // 标普500 (修正: usSPX->usINX)
+    tencentFetch('sh000300'),     // 沪深300 (修正: 1.000300->sh000300)
+    tencentFetch('usNDX'),        // 纳斯达克
+  ]);
+
+  // 获取VIX - 尝试多个来源
+  let vix = await fetchVIX();
+
+  // 获取美元指数和美债收益率
+  const tnx = await fetchBondYield();  // 美债收益率
+
+  liveData = { wti, brent, gold, silver, ng, spx, csi, ndx, vix, tnx };
+
+  // Update data status
+  const ok = !!spx;
+  document.getElementById('dataStatus').textContent = ok ? '✅ 真实数据已加载' : '⚠️ 部分数据获取中';
+  document.getElementById('dataStatus').style.color = ok ? 'var(--green)' : 'var(--gold)';
+  const now = new Date();
+  document.getElementById('dataTime').textContent = `更新于 ${now.toLocaleTimeString('zh-CN')}`;
+  const weekend = now.getDay() === 0 || now.getDay() === 6;
+  if (weekend) {
+    document.getElementById('weekendNote').style.display = '';
+  }
+
+  // Update ticker
+  const tickers = [
+    { name: 'WTI原油', key: 'wti', isYield: false },
+    { name: '布伦特', key: 'brent', isYield: false },
+    { name: '黄金', key: 'gold', isYield: false },
+    { name: '白银', key: 'silver', isYield: false },
+    { name: '标普500', key: 'spx', isYield: false },
+    { name: '沪深300', key: 'csi', isYield: false },
+    { name: '纳指100', key: 'ndx', isYield: false },
+    { name: 'VIX', key: 'vix', isYield: false },
+    { name: '美债10Y', key: 'tnx', isYield: true },
+    { name: '天然气', key: 'ng', isYield: false },
+  ];
+
+  const inner = document.getElementById('tickerInner');
+  let html = '';
+  [...tickers, ...tickers].forEach(t => {
+    const d = liveData[t.key];
+    if (!d || !d.price) return;
+    const isUp = d.changePct >= 0;
+    const chgClass = t.isYield ? (isUp ? 'down' : 'up') : (isUp ? 'up' : 'down');
+    html += `<div class="ticker-item">
+      <span class="name">${t.name}</span>
+      <span class="val">${fmtVal(t.key, d.price)}</span>
+      <span class="chg ${chgClass}">${fmtPct(d.changePct)}</span>
+    </div>`;
+  });
+  inner.innerHTML = html;
+
+  // Update brief items
+  const items = [
+    { key: 'wti', label: 'WTI 原油', subKey: 'brent', subLabel: '布伦特' },
+    { key: 'gold', label: '黄金 COMEX', subKey: 'silver', subLabel: '白银' },
+    { key: 'vix', label: 'VIX 恐慌指数', subKey: null, subLabel: '' },
+    { key: 'spx', label: '标普500', subKey: 'ndx', subLabel: '纳指' },
+    { key: 'csi', label: '沪深300', subKey: 'tnx', subLabel: '美债10Y' },
+    { key: 'ng', label: '天然气', subKey: null, subLabel: '' },
+  ];
+
+  document.getElementById('briefGrid').innerHTML = items.map(item => {
+    const d = liveData[item.key];
+    const subD = item.subKey ? liveData[item.subKey] : null;
+    const isUp = d?.changePct >= 0;
+    const isYield = item.key === 'tnx';
+    const colorClass = isYield ? (isUp ? 'down-color' : 'up-color') : (isUp ? 'up-color' : 'down-color');
+    const subText = subD && subD.price ? `${item.subLabel}: ${fmtVal(item.subKey, subD.price)}` : '';
+    const src = d?.source ? `📡 ${d.source}` : '';
+    return `<div class="brief-item">
+      <div class="item-label">${item.label} <span style="font-size:9px;color:var(--text3)">${src}</span></div>
+      <div class="item-val ${colorClass}">${d && d.price ? fmtVal(item.key, d.price) : '...'}</div>
+      <div class="item-sub">${subText || (d && d.changePct ? fmtPct(d.changePct) : '')}</div>
+    </div>`;
+  }).join('');
+
+  // Update time
+  const briefHeader = document.querySelector('.brief-header h3');
+  if (briefHeader) {
+    briefHeader.innerHTML = `📊 全球核心指标 <span style="font-size:12px;color:var(--text3);font-weight:400">· 实时数据</span>`;
+  }
+}
+
+fetchAllData();
+setInterval(fetchAllData, 5 * 60 * 1000);
+
+// ===== 工具打开/关闭 =====
+function openTool(file, title) {
+  const modal = document.getElementById('toolModal');
+  const iframe = document.getElementById('modalIframe');
+  const titleEl = document.getElementById('modalTitle');
+  const loadingBar = document.getElementById('loadingBar');
+
+  titleEl.textContent = title;
+  loadingBar.style.display = 'block';
+  iframe.src = 'about:blank';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    iframe.src = file;
+    iframe.onload = () => { loadingBar.style.display = 'none'; };
+  }, 100);
+}
+
+function closeModal() {
+  const modal = document.getElementById('toolModal');
+  const iframe = document.getElementById('modalIframe');
+  modal.classList.remove('open');
+  iframe.src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+// ESC关闭
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// 点击遮罩关闭
+document.getElementById('toolModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===== 悬浮菜单 =====
+let floatOpen = false;
+function toggleFloatMenu() {
+  floatOpen = !floatOpen;
+  ['fb1','fb2','fb3','fb4'].forEach(id => {
+    document.getElementById(id).classList.toggle('visible', floatOpen);
+  });
+}
+</script>
+</body>
+</html>

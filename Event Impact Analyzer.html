@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Impact Analyzer · 事件影响分析器</title>
+<style>
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --bg-card: #1c2128;
+  --border: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-red: #f85149;
+  --accent-yellow: #d29922;
+  --accent-purple: #a371f7;
+  --accent-orange: #db6d28;
+  --shadow: 0 8px 24px rgba(0,0,0,0.4);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.header h1 {
+  font-size: 24px; font-weight: 600;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header p { color: var(--text-secondary); font-size: 14px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.time-badge {
+  background: var(--bg-tertiary);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Tab Navigation */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-secondary);
+  padding: 6px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+.tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+.tab.active { background: var(--accent-purple); color: white; }
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+/* Grid Layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* Event Input Section */
+.event-input-section { margin-bottom: 24px; }
+.event-input-wrapper {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.event-input {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  color: var(--text-primary);
+  font-size: 15px;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s;
+}
+.event-input:focus {
+  outline: none;
+  border-color: var(--accent-purple);
+}
+.event-input::placeholder { color: var(--text-muted); }
+.quick-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.quick-event-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.quick-event-btn:hover {
+  background: var(--accent-purple);
+  color: white;
+  border-color: var(--accent-purple);
+}
+
+/* Analyze Button */
+.analyze-btn {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  border: none;
+  color: white;
+  padding: 14px 32px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(88,166,255,0.3); }
+.analyze-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Impact Score Display */
+.impact-display {
+  display: none;
+  animation: fadeIn 0.5s ease;
+}
+.impact-display.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.impact-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.impact-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.impact-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+}
+.impact-card.positive::before { background: var(--accent-green); }
+.impact-card.negative::before { background: var(--accent-red); }
+.impact-card.neutral::before { background: var(--accent-yellow); }
+.impact-card.info::before { background: var(--accent-blue); }
+.impact-card h3 { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.impact-score {
+  font-size: 36px;
+  font-weight: 700;
+}
+.impact-card.positive .impact-score { color: var(--accent-green); }
+.impact-card.negative .impact-score { color: var(--accent-red); }
+.impact-card.neutral .impact-score { color: var(--accent-yellow); }
+.impact-card.info .impact-score { color: var(--accent-blue); }
+.impact-label {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-top: 8px;
+}
+.impact-card.positive .impact-label { background: rgba(63,185,80,0.2); color: var(--accent-green); }
+.impact-card.negative .impact-label { background: rgba(248,81,73,0.2); color: var(--accent-red); }
+.impact-card.neutral .impact-label { background: rgba(210,153,34,0.2); color: var(--accent-yellow); }
+.impact-card.info .impact-label { background: rgba(88,166,255,0.2); color: var(--accent-blue); }
+
+/* Impact Gauge */
+.impact-gauge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0;
+}
+.gauge-wrapper {
+  position: relative;
+  width: 280px;
+  height: 160px;
+}
+.gauge-bg {
+  width: 280px;
+  height: 140px;
+  background: conic-gradient(
+    from 180deg at 50% 100%,
+    var(--accent-red) 0deg,
+    var(--accent-yellow) 54deg,
+    var(--accent-green) 90deg
+  );
+  border-radius: 140px 140px 0 0;
+  opacity: 0.3;
+}
+.gauge-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  border-radius: 140px 140px 0 0;
+  background: conic-gradient(
+    from 180deg at 50% 100%,
+    var(--accent-red) 0deg,
+    var(--accent-yellow) 54deg,
+    var(--accent-green) 90deg
+  );
+  clip-path: polygon(0 100%, 50% 100%, 50% 0, 0 100%);
+  transition: clip-path 0.8s ease;
+}
+.gauge-marker {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 130px;
+  background: white;
+  transform-origin: bottom center;
+  transition: transform 0.8s ease;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+.gauge-center {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.gauge-label {
+  position: absolute;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.gauge-label.left { bottom: 10px; left: 20px; }
+.gauge-label.center { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.gauge-label.right { bottom: 10px; right: 20px; }
+
+/* Affected Assets */
+.affected-assets {
+  margin-top: 24px;
+}
+.affected-assets h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.affected-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.asset-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid;
+}
+.asset-card.positive { border-color: var(--accent-green); }
+.asset-card.negative { border-color: var(--accent-red); }
+.asset-card.neutral { border-color: var(--accent-yellow); }
+.asset-info h4 { font-size: 15px; margin-bottom: 4px; }
+.asset-info p { font-size: 12px; color: var(--text-secondary); }
+.asset-impact {
+  text-align: right;
+}
+.asset-impact .score {
+  font-size: 20px;
+  font-weight: 600;
+}
+.asset-card.positive .asset-impact .score { color: var(--accent-green); }
+.asset-card.negative .asset-impact .score { color: var(--accent-red); }
+.asset-card.neutral .asset-impact .score { color: var(--accent-yellow); }
+.asset-impact .label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Historical Similar Events */
+.history-section { margin-top: 24px; }
+.history-section h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.history-item {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 120px 1fr 100px;
+  gap: 16px;
+  align-items: center;
+}
+.history-date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.history-event {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.history-outcome {
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.history-outcome.positive { background: rgba(63,185,80,0.2); color: var(--accent-green); }
+.history-outcome.negative { background: rgba(248,81,73,0.2); color: var(--accent-red); }
+.history-outcome.neutral { background: rgba(210,153,34,0.2); color: var(--accent-yellow); }
+
+/* Analysis Details */
+.analysis-details {
+  margin-top: 24px;
+}
+.analysis-details h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.analysis-box {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+}
+.analysis-box h4 {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.analysis-box ul {
+  list-style: none;
+  font-size: 14px;
+}
+.analysis-box li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.analysis-box li:last-child { border-bottom: none; }
+.analysis-box li::before {
+  content: '→';
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+/* Action Recommendations */
+.action-recommendations {
+  margin-top: 24px;
+}
+.action-recommendations h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.action-item {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.action-priority {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.action-priority.high { background: var(--accent-red); color: white; }
+.action-priority.medium { background: var(--accent-yellow); color: #000; }
+.action-priority.low { background: var(--accent-green); color: white; }
+.action-content h4 { font-size: 15px; margin-bottom: 4px; }
+.action-content p { font-size: 13px; color: var(--text-secondary); }
+
+/* Calendar View */
+.calendar-container { padding: 16px 0; }
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.calendar-nav {
+  display: flex;
+  gap: 8px;
+}
+.calendar-nav button {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.calendar-nav button:hover { background: var(--accent-purple); border-color: var(--accent-purple); }
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-day-header {
+  text-align: center;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.calendar-day {
+  aspect-ratio: 1;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  min-height: 70px;
+}
+.calendar-day:hover { background: var(--bg-tertiary); }
+.calendar-day.other-month { opacity: 0.3; }
+.calendar-day.today { background: var(--accent-purple); color: white; }
+.calendar-day .event-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+}
+.event-dot.high { background: var(--accent-red); }
+.event-dot.medium { background: var(--accent-yellow); }
+.event-dot.low { background: var(--accent-green); }
+.event-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Event Library */
+.event-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.library-category {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.category-header {
+  background: var(--bg-tertiary);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.category-events {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.library-event {
+  background: var(--bg-primary);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.library-event:hover {
+  border-color: var(--accent-purple);
+  background: var(--bg-tertiary);
+}
+.library-event.selected {
+  border-color: var(--accent-purple);
+  background: rgba(163,113,247,0.1);
+}
+.event-impact-mini {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+.event-impact-mini.positive { background: rgba(63,185,80,0.2); color: var(--accent-green); }
+.event-impact-mini.negative { background: rgba(248,81,73,0.2); color: var(--accent-red); }
+.event-impact-mini.neutral { background: rgba(210,153,34,0.2); color: var(--accent-yellow); }
+
+/* Sentiment Timeline */
+.sentiment-timeline {
+  padding: 20px 0;
+}
+.timeline-chart {
+  height: 120px;
+  position: relative;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.timeline-line {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: var(--border);
+}
+.sentiment-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 100%;
+  padding: 20px 40px;
+  gap: 8px;
+}
+.sentiment-bar {
+  flex: 1;
+  max-width: 40px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s ease;
+  position: relative;
+}
+.sentiment-bar::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.sentiment-bar:hover { opacity: 0.8; }
+.sentiment-bar.positive { background: var(--accent-green); }
+.sentiment-bar.negative { background: var(--accent-red); }
+.sentiment-bar.neutral { background: var(--accent-yellow); }
+
+/* Settings Panel */
+.settings-section { margin-bottom: 24px; }
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+.setting-item {
+  background: var(--bg-secondary);
+  padding: 16px;
+  border-radius: var(--radius-sm);
+}
+.setting-item label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.setting-item select {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-purple);
+}
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.switch {
+  width: 44px;
+  height: 24px;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+.switch.active { background: var(--accent-purple); }
+.switch.active::after { transform: translateX(20px); }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .analysis-grid { grid-template-columns: 1fr; }
+  .impact-summary { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .container { padding: 16px; }
+  .header { flex-direction: column; gap: 16px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .impact-summary { grid-template-columns: 1fr; }
+  .calendar-grid { grid-template-columns: repeat(7, 1fr); }
+  .calendar-day { min-height: 50px; font-size: 11px; }
+  .history-item { grid-template-columns: 1fr; gap: 8px; }
+  .history-outcome { justify-self: start; }
+}
+
+/* Loading Animation */
+.loading {
+  display: none;
+  text-align: center;
+  padding: 40px;
+}
+.loading.active { display: block; }
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent-purple);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { color: var(--text-secondary); font-size: 14px; }
+
+/* Impact Matrix */
+.impact-matrix {
+  margin-top: 24px;
+}
+.impact-matrix h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.matrix-table th, .matrix-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.matrix-table th {
+  background: var(--bg-tertiary);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.matrix-table td { font-size: 13px; }
+.matrix-table tr:last-child td { border-bottom: none; }
+.matrix-table tr:hover td { background: var(--bg-tertiary); }
+
+/* Tabs Content */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.section-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.section-header .badge {
+  background: var(--accent-purple);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Watchlist Monitor */
+.watchlist-section { margin-top: 24px; }
+.watchlist-section h3 { margin-bottom: 16px; font-size: 16px; }
+.watchlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.watchlist-item {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+}
+.watchlist-item h4 { font-size: 16px; margin-bottom: 8px; }
+.watchlist-item .price { font-size: 20px; font-weight: 600; }
+.watchlist-item .change { font-size: 13px; }
+.watchlist-item .change.up { color: var(--accent-green); }
+.watchlist-item .change.down { color: var(--accent-red); }
+
+/* Macro Events */
+.macro-events {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.macro-event-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  border-left: 4px solid;
+}
+.macro-event-card.high { border-color: var(--accent-red); }
+.macro-event-card.medium { border-color: var(--accent-yellow); }
+.macro-event-card.low { border-color: var(--accent-green); }
+.macro-event-card h4 { font-size: 14px; margin-bottom: 8px; }
+.macro-event-card .meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.macro-event-card p { font-size: 13px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">📰</div>
+      <div>
+        <h1>Event Impact Analyzer</h1>
+        <p>事件影响分析器 · AI驱动的市场事件解读系统</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="time-badge" id="currentTime"></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="analyzer">🔍 事件分析</button>
+    <button class="tab" data-tab="calendar">📅 事件日历</button>
+    <button class="tab" data-tab="library">📚 事件库</button>
+    <button class="tab" data-tab="watchlist">👁️ 自选监控</button>
+    <button class="tab" data-tab="settings">⚙️ 设置</button>
+  </div>
+
+  <!-- Tab: Event Analyzer -->
+  <div class="tab-content active" id="tab-analyzer">
+    <div class="card">
+      <div class="event-input-section">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">📝 输入事件</h3>
+        <div class="event-input-wrapper">
+          <textarea class="event-input" id="eventInput" placeholder="输入市场事件，如：
+· 美联储宣布维持利率不变
+· 中国公布CPI数据低于预期
+· 某公司发布业绩公告
+· 地缘政治冲突升级
+· 央行降准"></textarea>
+        </div>
+        <div class="quick-events">
+          <span style="font-size: 13px; color: var(--text-muted); margin-right: 8px;">快速事件：</span>
+          <button class="quick-event-btn" data-event="美联储降息25bp">美联储降息</button>
+          <button class="quick-event-btn" data-event="中国CPI同比上涨2.3%，低于预期">CPI数据发布</button>
+          <button class="quick-event-btn" data-event="美伊紧张局势升级，霍尔木兹海峡关闭风险">地缘冲突</button>
+          <button class="quick-event-btn" data-event="央行宣布降准0.5个百分点">央行降准</button>
+          <button class="quick-event-btn" data-event="美国非农就业新增25万，超预期">非农数据</button>
+          <button class="quick-event-btn" data-event="华为发布新一代AI芯片">科技事件</button>
+          <button class="quick-event-btn" data-event="OPEC宣布减产200万桶/日">原油减产</button>
+          <button class="quick-event-btn" data-event="某龙头公司季度财报超预期20%">财报超预期</button>
+        </div>
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeEvent()">
+          <span>⚡</span> 分析事件影响
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+      <div class="loading-spinner"></div>
+      <p>正在分析事件影响...</p>
+    </div>
+
+    <!-- Impact Display -->
+    <div class="impact-display" id="impactDisplay">
+      <!-- Impact Summary Cards -->
+      <div class="impact-summary">
+        <div class="impact-card info">
+          <h3>综合影响评分</h3>
+          <div class="impact-score" id="impactScore">0</div>
+          <span class="impact-label" id="impactLabel">待分析</span>
+        </div>
+        <div class="impact-card positive">
+          <h3>情绪影响</h3>
+          <div class="impact-score" id="sentimentScore">0</div>
+          <span class="impact-label" id="sentimentLabel">中性</span>
+        </div>
+        <div class="impact-card negative">
+          <h3>风险等级</h3>
+          <div class="impact-score" id="riskScore">低</div>
+          <span class="impact-label" id="riskLabel">可控</span>
+        </div>
+        <div class="impact-card neutral">
+          <h3>持续时间</h3>
+          <div class="impact-score" id="durationScore">-</div>
+          <span class="impact-label" id="durationLabel">待判定</span>
+        </div>
+      </div>
+
+      <!-- Impact Gauge -->
+      <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">⚖️ 影响强度仪表盘</h3>
+        <div class="impact-gauge">
+          <div class="gauge-wrapper">
+            <div class="gauge-bg"></div>
+            <div class="gauge-fill" id="gaugeFill"></div>
+            <div class="gauge-marker" id="gaugeMarker"></div>
+            <div class="gauge-center"></div>
+            <span class="gauge-label left">利空 -100</span>
+            <span class="gauge-label center">中性 0</span>
+            <span class="gauge-label right">利好 +100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Affected Assets -->
+      <div class="card affected-assets">
+        <h3>📊 相关资产影响</h3>
+        <div class="affected-grid" id="affectedAssets"></div>
+      </div>
+
+      <!-- Historical Similar Events -->
+      <div class="card history-section">
+        <h3>📜 历史相似事件</h3>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
+      <!-- Analysis Details -->
+      <div class="card analysis-details">
+        <h3>🔬 深度分析</h3>
+        <div class="analysis-grid">
+          <div class="analysis-box">
+            <h4>💡 利好因素</h4>
+            <ul id="bullishFactors"></ul>
+          </div>
+          <div class="analysis-box">
+            <h4>⚠️ 利空因素</h4>
+            <ul id="bearishFactors"></ul>
+          </div>
+          <div class="analysis-box">
+            <h4>🎯 核心逻辑</h4>
+            <ul id="coreLogic"></ul>
+          </div>
+          <div class="analysis-box">
+            <h4>⏰ 时间维度</h4>
+            <ul id="timeDimension"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Recommendations -->
+      <div class="card action-recommendations">
+        <h3>✅ 行动建议</h3>
+        <div class="action-list" id="actionList"></div>
+      </div>
+
+      <!-- Impact Matrix -->
+      <div class="card impact-matrix">
+        <h3>📋 资产影响矩阵</h3>
+        <table class="matrix-table" id="impactMatrix">
+          <thead>
+            <tr>
+              <th>资产/板块</th>
+              <th>短期影响</th>
+              <th>中期影响</th>
+              <th>长期影响</th>
+              <th>建议操作</th>
+            </tr>
+          </thead>
+          <tbody id="matrixBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Calendar -->
+  <div class="tab-content" id="tab-calendar">
+    <div class="card">
+      <div class="section-header">
+        <h2>📅 重要事件日历</h2>
+        <span class="badge">本月</span>
+      </div>
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">← 上月</button>
+            <button id="currentMonth" style="font-weight: 600; min-width: 180px;"></button>
+            <button onclick="changeMonth(1)">下月 →</button>
+          </div>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-day-header">周日</div>
+          <div class="calendar-day-header">周一</div>
+          <div class="calendar-day-header">周二</div>
+          <div class="calendar-day-header">周三</div>
+          <div class="calendar-day-header">周四</div>
+          <div class="calendar-day-header">周五</div>
+          <div class="calendar-day-header">周六</div>
+        </div>
+        <div class="calendar-grid" id="calendarDays"></div>
+      </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="card" style="margin-top: 20px;">
+      <div class="section-header">
+        <h2>🚨 本周重要事件</h2>
+      </div>
+      <div class="macro-events" id="upcomingEvents"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Library -->
+  <div class="tab-content" id="tab-library">
+    <div class="card">
+      <div class="section-header">
+        <h2>📚 事件影响知识库</h2>
+        <span class="badge">已分类</span>
+      </div>
+      <div class="event-library" id="eventLibrary"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Watchlist -->
+  <div class="tab-content" id="tab-watchlist">
+    <div class="card">
+      <div class="section-header">
+        <h2>👁️ 自选资产监控</h2>
+        <button class="quick-event-btn" onclick="addToWatchlist()" style="background: var(--accent-purple); color: white;">+ 添加</button>
+      </div>
+      <div class="watchlist-grid" id="watchlistGrid"></div>
+    </div>
+
+    <div class="card watchlist-section" style="margin-top: 20px;">
+      <h3>📈 走势与异动</h3>
+      <div class="sentiment-timeline">
+        <div class="timeline-chart">
+          <div class="timeline-line"></div>
+          <div class="sentiment-bars" id="sentimentBars"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Settings -->
+  <div class="tab-content" id="tab-settings">
+    <div class="card">
+      <div class="section-header">
+        <h2>⚙️ 分析设置</h2>
+      </div>
+      <div class="settings-section">
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label>分析深度</label>
+            <select id="analysisDepth">
+              <option value="quick">快速分析（1-2分钟）</option>
+              <option value="normal" selected>标准分析（5-10分钟）</option>
+              <option value="deep">深度分析（15-30分钟）</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>关注市场</label>
+            <select id="targetMarket">
+              <option value="all" selected>全球市场</option>
+              <option value="cn">中国市场</option>
+              <option value="us">美国市场</option>
+              <option value="hk">香港市场</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>风险偏好</label>
+            <select id="riskAppetite">
+              <option value="conservative">保守型</option>
+              <option value="balanced" selected>平衡型</option>
+              <option value="aggressive">进取型</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>时间范围</label>
+            <select id="timeHorizon">
+              <option value="intraday">日内交易</option>
+              <option value="short" selected>短期（1周-1月）</option>
+              <option value="medium">中期（1-6月）</option>
+              <option value="long">长期（6月以上）</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary);">通知偏好</h3>
+        <div class="settings-grid">
+          <div class="setting-item">
+            <div class="toggle-switch">
+              <div class="switch active" id="notifyHighImpact" onclick="toggleSwitch(this)"></div>
+              <span>高影响事件提醒</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="toggle-switch">
+              <div class="switch active" id="notifyNews" onclick="toggleSwitch(this)"></div>
+              <span>重要新闻推送</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="toggle-switch">
+              <div class="switch" id="notifyCalendar" onclick="toggleSwitch(this)"></div>
+              <span>日历事件提醒</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="toggle-switch">
+              <div class="switch active" id="autoAnalysis" onclick="toggleSwitch(this)"></div>
+              <span>自动深度分析</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const EVENT_LIBRARY = {
+  macro: {
+    name: '🌐 宏观经济',
+    icon: '📊',
+    events: [
+      { text: '美联储利率决议', impact: 'negative', description: '影响全球资本流向' },
+      { text: '非农就业数据', impact: 'negative', description: '美国劳动力市场风向标' },
+      { text: 'CPI/PPI通胀数据', impact: 'negative', description: '通胀压力直接影响货币政策' },
+      { text: 'GDP增长率', impact: 'neutral', description: '经济增长核心指标' },
+      { text: 'PMI制造业/非制造业', impact: 'neutral', description: '经济景气度先行指标' },
+      { text: '央行降准/降息', impact: 'positive', description: '流动性宽松利好市场' },
+      { text: '外汇储备数据', impact: 'neutral', description: '人民币汇率参考' }
+    ]
+  },
+  policy: {
+    name: '📜 政策监管',
+    icon: '🏛️',
+    events: [
+      { text: '两会/重要会议', impact: 'positive', description: '政策方向定调' },
+      { text: '行业监管政策', impact: 'negative', description: '短期冲击行业估值' },
+      { text: '财政刺激政策', impact: 'positive', description: '需求侧利好' },
+      { text: '房地产调控', impact: 'negative', description: '影响地产链' },
+      { text: '科技监管政策', impact: 'negative', description: '平台经济影响大' },
+      { text: '贸易政策调整', impact: 'negative', description: '出口导向型企业' }
+    ]
+  },
+  geo: {
+    name: '🗺️ 地缘政治',
+    icon: '⚔️',
+    events: [
+      { text: '中美关系动向', impact: 'negative', description: '科技/出口链影响大' },
+      { text: '俄乌冲突进展', impact: 'negative', description: '能源/粮食价格冲击' },
+      { text: '中东局势', impact: 'negative', description: '原油风险溢价' },
+      { text: '台海局势', impact: 'negative', description: '半导体/科技链' },
+      { text: '朝鲜半岛', impact: 'neutral', description: '避险情绪短期影响' }
+    ]
+  },
+  corporate: {
+    name: '🏢 公司行业',
+    icon: '💼',
+    events: [
+      { text: '财报季业绩', impact: 'neutral', description: '超预期/低预期分化' },
+      { text: '重大并购重组', impact: 'positive', description: '行业格局重塑' },
+      { text: '龙头公司黑天鹅', impact: 'negative', description: '板块联动下跌' },
+      { text: '技术突破/新产品', impact: 'positive', description: '行业催化剂' },
+      { text: '供应链危机', impact: 'negative', description: '产能受限' },
+      { text: '高管变动', impact: 'neutral', description: '战略不确定性' }
+    ]
+  },
+  energy: {
+    name: '⛽ 大宗商品',
+    icon: '🛢️',
+    events: [
+      { text: 'OPEC+产量决议', impact: 'negative', description: '原油价格直接冲击' },
+      { text: '原油库存数据', impact: 'neutral', description: '短期供需信号' },
+      { text: '天然气价格波动', impact: 'neutral', description: '能源成本传导' },
+      { text: '黄金突破关键位', impact: 'positive', description: '避险需求升温' },
+      { text: '铜价大幅波动', impact: 'neutral', description: '经济预期先行' },
+      { text: '农产品天气炒作', impact: 'neutral', description: '通胀预期关联' }
+    ]
+  },
+  tech: {
+    name: '💻 科技事件',
+    icon: '🤖',
+    events: [
+      { text: 'AI大模型发布', impact: 'positive', description: '科技板块催化剂' },
+      { text: '芯片禁令升级', impact: 'negative', description: '半导体链冲击' },
+      { text: '互联网监管政策', impact: 'negative', description: '平台估值承压' },
+      { text: '新能源汽车销量', impact: 'positive', description: '渗透率提升逻辑' },
+      { text: '苹果/特斯拉新品', impact: 'positive', description: '产业链机会' }
+    ]
+  }
+};
+
+const CALENDAR_EVENTS = [
+  { date: '2026-04-03', title: '美国API原油库存', type: 'high', category: '能源' },
+  { date: '2026-04-04', title: '美国非农就业数据', type: 'high', category: '宏观' },
+  { date: '2026-04-04', title: '中国财新PMI', type: 'medium', category: '宏观' },
+  { date: '2026-04-07', title: 'OPEC月报', type: 'medium', category: '能源' },
+  { date: '2026-04-09', title: '美国CPI数据', type: 'high', category: '宏观' },
+  { date: '2026-04-10', title: '美联储会议纪要', type: 'high', category: '宏观' },
+  { date: '2026-04-15', title: '中国GDP数据', type: 'high', category: '宏观' },
+  { date: '2026-04-17', title: ' OPEC+JMMC会议', type: 'medium', category: '能源' },
+  { date: '2026-04-22', title: '欧元区PMI', type: 'medium', category: '宏观' },
+  { date: '2026-04-25', title: '美国PCE物价指数', type: 'high', category: '宏观' }
+];
+
+const WATCHLIST = [
+  { code: '600519.SH', name: '贵州茅台', price: 1688.50, change: 2.34 },
+  { code: '000858.SZ', name: '五粮液', price: 142.30, change: -0.87 },
+  { code: '300750.SZ', name: '宁德时代', price: 186.75, change: 3.21 },
+  { code: '601318.SH', name: '中国平安', price: 45.20, change: 1.15 },
+  { code: '600036.SH', name: '招商银行', price: 32.80, change: 0.45 },
+  { code: '000001.SZ', name: '平安银行', price: 11.25, change: -1.23 }
+];
+
+const HISTORICAL_DATA = {
+  '美联储降息': [
+    { date: '2024-09-18', event: '美联储降息50bp，超预期', outcome: 'positive', market: '美股+2.1%, A股+1.5%' },
+    { date: '2024-07-31', event: '美联储维持利率不变', outcome: 'neutral', market: '市场消化预期，小幅波动' },
+    { date: '2024-03-20', event: '美联储维持高利率', outcome: 'negative', market: '风险资产承压' }
+  ],
+  'CPI数据': [
+    { date: '2026-02-14', event: '中国CPI同比-0.8%，低于预期', outcome: 'negative', market: '消费板块下跌' },
+    { date: '2025-12-10', event: '中国CPI同比0.2%，符合预期', outcome: 'neutral', market: '市场平稳' }
+  ],
+  '地缘冲突': [
+    { date: '2024-04-14', event: '伊朗反击以色列', outcome: 'negative', market: '原油+4%, 黄金+2%' },
+    { date: '2024-10-07', event: '中东局势升级', outcome: 'negative', market: '能源板块+3%, 全球股市-1%' }
+  ],
+  '央行降准': [
+    { date: '2025-09-24', event: '央行降准0.5个百分点', outcome: 'positive', market: '银行+2%, 券商+3%' },
+    { date: '2024-02-05', event: '央行降准0.5个百分点', outcome: 'positive', market: '流动性改善，利好金融' }
+  ]
+};
+
+const ASSET_IMPACTS = {
+  'A股大盘': { short: 0, medium: 0, long: 0 },
+  '沪深300': { short: 0, medium: 0, long: 0 },
+  '创业板': { short: 0, medium: 0, long: 0 },
+  '上证50': { short: 0, medium: 0, long: 0 },
+  '科技板块': { short: 0, medium: 0, long: 0 },
+  '金融板块': { short: 0, medium: 0, long: 0 },
+  '消费板块': { short: 0, medium: 0, long: 0 },
+  '能源板块': { short: 0, medium: 0, long: 0 }
+};
+
+// ==================== CORE FUNCTIONS ====================
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+function updateTime() {
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  document.getElementById('currentTime').textContent = now.toLocaleDateString('zh-CN', options);
+}
+
+// Tab Navigation
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Quick Event Buttons
+document.querySelectorAll('.quick-event-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('eventInput').value = btn.dataset.event;
+  });
+});
+
+// Main Analysis Function
+function analyzeEvent() {
+  const eventText = document.getElementById('eventInput').value.trim();
+  if (!eventText) {
+    alert('请输入要分析的事件');
+    return;
+  }
+
+  // Show loading
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('impactDisplay').classList.remove('active');
+
+  // Simulate analysis delay
+  setTimeout(() => {
+    const result = performAnalysis(eventText);
+    displayResults(result);
+    document.getElementById('loading').classList.remove('active');
+    document.getElementById('impactDisplay').classList.add('active');
+  }, 1500);
+}
+
+function performAnalysis(eventText) {
+  const lowerEvent = eventText.toLowerCase();
+
+  // Event classification and scoring
+  let score = 0;
+  let sentiment = 'neutral';
+  let risk = 'low';
+  let duration = '短期';
+  let bullishFactors = [];
+  let bearishFactors = [];
+  let coreLogic = [];
+  let timeDimension = [];
+  let affectedAssets = [];
+  let actions = [];
+
+  // Macro events
+  if (lowerEvent.includes('美联储') || lowerEvent.includes('降息')) {
+    score = 65;
+    sentiment = 'positive';
+    bullishFactors = ['流动性改善', '融资成本下降', '风险偏好提升'];
+    bearishFactors = ['银行净息差收窄', '美元可能走弱'];
+    coreLogic = ['货币宽松利好权益资产', '成长股受益更明显', '人民币资产吸引力提升'];
+    timeDimension = ['立即生效', '持续3-6个月', '需观察通胀走势'];
+    affectedAssets = [
+      { name: '科技板块', impact: 'positive', score: '+2.5%' },
+      { name: '创业板', impact: 'positive', score: '+2.0%' },
+      { name: '金融板块', impact: 'neutral', score: '-0.5%' },
+      { name: '债券市场', impact: 'positive', score: '+1.0%' }
+    ];
+    actions = [
+      { priority: 'high', title: '增配权益资产', desc: '风险偏好提升，适度加仓成长股' },
+      { priority: 'medium', title: '关注科技/医药板块', desc: '成长股对流动性敏感度高' },
+      { priority: 'low', title: '适度减持现金', desc: '机会成本上升' }
+    ];
+  } else if (lowerEvent.includes('cpi') || lowerEvent.includes('通胀')) {
+    score = -45;
+    sentiment = 'negative';
+    risk = 'medium';
+    bullishFactors = ['政策空间可能打开', '黄金等避险资产受益'];
+    bearishFactors = ['实际利率可能上升', '消费需求可能承压'];
+    coreLogic = ['通胀低于预期→需求疲软→企业盈利压力'];
+    timeDimension = ['持续1-2周', '需观察后续数据确认'];
+    affectedAssets = [
+      { name: '消费板块', impact: 'negative', score: '-1.5%' },
+      { name: '黄金', impact: 'positive', score: '+1.0%' },
+      { name: '债券', impact: 'neutral', score: '+0.5%' }
+    ];
+    actions = [
+      { priority: 'high', title: '降低消费板块配置', desc: '需求端压力显现' },
+      { priority: 'medium', title: '增配黄金/债券', desc: '避险需求上升' }
+    ];
+  } else if (lowerEvent.includes('地缘') || lowerEvent.includes('冲突') || lowerEvent.includes('战争')) {
+    score = -55;
+    sentiment = 'negative';
+    risk = 'high';
+    duration = '中期';
+    bullishFactors = ['军工板块受益', '黄金/原油上行'];
+    bearishFactors = ['风险偏好骤降', '全球供应链冲击', '出口链承压'];
+    coreLogic = ['地缘风险→避险情绪升温→风险资产抛售'];
+    timeDimension = ['立即冲击', '持续1-4周', '取决于冲突规模'];
+    affectedAssets = [
+      { name: '黄金', impact: 'positive', score: '+3.0%' },
+      { name: '原油', impact: 'positive', score: '+4.0%' },
+      { name: '全球股市', impact: 'negative', score: '-2.0%' },
+      { name: '军工板块', impact: 'positive', score: '+2.5%' }
+    ];
+    actions = [
+      { priority: 'high', title: '减仓风险资产', desc: '地缘风险升温，控制仓位' },
+      { priority: 'high', title: '增配黄金/原油', desc: '避险资产对冲' },
+      { priority: 'medium', title: '关注能源板块', desc: '油价上行受益' }
+    ];
+  } else if (lowerEvent.includes('降准') || lowerEvent.includes('宽松')) {
+    score = 50;
+    sentiment = 'positive';
+    bullishFactors = ['流动性改善', '银行资金成本下降', '实体融资环境好转'];
+    bearishFactors = ['可能引发汇率波动', '通胀预期需关注'];
+    coreLogic = ['货币宽松→流动性增加→资产价格上行'];
+    timeDimension = ['1-3天内生效', '利好持续1-3个月'];
+    affectedAssets = [
+      { name: '金融板块', impact: 'positive', score: '+1.5%' },
+      { name: '券商板块', impact: 'positive', score: '+2.0%' },
+      { name: '房地产', impact: 'positive', score: '+1.0%' },
+      { name: '债市', impact: 'positive', score: '+0.8%' }
+    ];
+    actions = [
+      { priority: 'high', title: '增配金融/券商', desc: '直接受益于流动性改善' },
+      { priority: 'medium', title: '关注房地产', desc: '融资环境好转' }
+    ];
+  } else if (lowerEvent.includes('非农') || lowerEvent.includes('就业')) {
+    if (lowerEvent.includes('超预期') || lowerEvent.includes('新增')) {
+      score = 30;
+      sentiment = 'positive';
+      bullishFactors = ['经济软着陆概率提升', '消费信心增强'];
+      bearishFactors = ['美联储可能推迟降息', '科技股估值压力'];
+      coreLogic = ['就业强劲→经济韧性→但通胀粘性风险'];
+      affectedAssets = [
+        { name: '美股', impact: 'positive', score: '+1.0%' },
+        { name: '消费板块', impact: 'positive', score: '+0.8%' }
+      ];
+    } else {
+      score = -40;
+      sentiment = 'negative';
+      risk = 'medium';
+      bullishFactors = ['美联储降息预期升温', '债券收益率下行'];
+      bearishFactors = ['经济衰退风险上升', '企业盈利预期下修'];
+      affectedAssets = [
+        { name: '美股', impact: 'negative', score: '-1.5%' },
+        { name: '债券', impact: 'positive', score: '+1.0%' }
+      ];
+    }
+    actions = [
+      { priority: 'medium', title: '关注美联储表态', desc: '判断后续政策走向' }
+    ];
+  } else if (lowerEvent.includes('opec') || lowerEvent.includes('减产') || lowerEvent.includes('原油')) {
+    score = -35;
+    sentiment = 'negative';
+    risk = 'medium';
+    duration = '中期';
+    bullishFactors = ['能源板块受益', '通胀预期推升黄金'];
+    bearishFactors = ['下游成本上升', '消费制造业承压', '全球通胀压力'];
+    coreLogic = ['供给收缩→价格上行→成本传导→中下游受损'];
+    affectedAssets = [
+      { name: '原油', impact: 'positive', score: '+5.0%' },
+      { name: '能源板块', impact: 'positive', score: '+3.0%' },
+      { name: '航空板块', impact: 'negative', score: '-2.0%' },
+      { name: '化工板块', impact: 'negative', score: '-1.5%' }
+    ];
+    actions = [
+      { priority: 'high', title: '关注油价突破', desc: '设置止损保护' },
+      { priority: 'medium', title: '减配航空/化工', desc: '成本传导压力' },
+      { priority: 'low', title: '增配黄金', desc: '通胀对冲' }
+    ];
+  } else if (lowerEvent.includes('财报') || lowerEvent.includes('业绩')) {
+    if (lowerEvent.includes('超预期')) {
+      score = 55;
+      sentiment = 'positive';
+      bullishFactors = ['盈利上调', '估值支撑加强', '信心提振'];
+      bearishFactors = ['预期已部分定价', '需持续超预期'];
+      affectedAssets = [
+        { name: '相关个股', impact: 'positive', score: '+3.0%' },
+        { name: '行业板块', impact: 'positive', score: '+1.0%' }
+      ];
+    } else {
+      score = -50;
+      sentiment = 'negative';
+      risk = 'medium';
+      bullishFactors = ['预期下修后的机会'];
+      bearishFactors = ['盈利下修', '估值压力', '机构调仓'];
+      affectedAssets = [
+        { name: '相关个股', impact: 'negative', score: '-4.0%' },
+        { name: '行业板块', impact: 'negative', score: '-1.5%' }
+      ];
+    }
+    actions = [
+      { priority: 'high', title: '检查持仓个股财报', desc: '排除潜在风险' }
+    ];
+  } else if (lowerEvent.includes('ai') || lowerEvent.includes('人工智能') || lowerEvent.includes('芯片')) {
+    score = 45;
+    sentiment = 'positive';
+    bullishFactors = ['产业趋势确认', '资本开支增加', '算力需求爆发'];
+    bearishFactors = ['估值已高', '竞争加剧'];
+    coreLogic = ['AI渗透率提升是长期趋势，短期波动不改方向'];
+    affectedAssets = [
+      { name: '科技板块', impact: 'positive', score: '+2.5%' },
+      { name: '半导体', impact: 'positive', score: '+3.0%' },
+      { name: '算力概念', impact: 'positive', score: '+4.0%' }
+    ];
+    actions = [
+      { priority: 'high', title: '关注AI算力产业链', desc: '核心受益方向' },
+      { priority: 'medium', title: '精选龙头', desc: '分化行情下择优' }
+    ];
+  } else {
+    // Default analysis
+    score = 10;
+    sentiment = 'neutral';
+    bullishFactors = ['需进一步观察'];
+    bearishFactors = ['不确定性较大'];
+    coreLogic = ['建议保持观望，等待更多信号'];
+    affectedAssets = [
+      { name: 'A股', impact: 'neutral', score: '±0.5%' },
+      { name: '港股', impact: 'neutral', score: '±0.5%' }
+    ];
+    actions = [
+      { priority: 'medium', title: '持续跟踪事件进展', desc: '等待更多信息确认' }
+    ];
+  }
+
+  // Get historical similar events
+  let historical = [];
+  for (const [key, events] of Object.entries(HISTORICAL_DATA)) {
+    if (lowerEvent.includes(key.split('').slice(0, 2).join(''))) {
+      historical = events;
+      break;
+    }
+  }
+  if (historical.length === 0) {
+    historical = HISTORICAL_DATA['央行降准']; // Default
+  }
+
+  return {
+    score,
+    sentiment,
+    risk,
+    duration,
+    bullishFactors,
+    bearishFactors,
+    coreLogic,
+    timeDimension,
+    affectedAssets,
+    actions,
+    historical,
+    matrix: generateMatrix(score, affectedAssets)
+  };
+}
+
+function generateMatrix(score, assets) {
+  const matrix = [];
+  for (const asset of assets) {
+    let advice = '观望';
+    if (asset.impact === 'positive') {
+      advice = score > 30 ? '增持' : '持有';
+    } else if (asset.impact === 'negative') {
+      advice = score < -30 ? '减持' : '观望';
+    }
+    matrix.push({
+      name: asset.name,
+      short: asset.impact === 'positive' ? '↑' : asset.impact === 'negative' ? '↓' : '→',
+      medium: '待定',
+      long: '待定',
+      advice
+    });
+  }
+  return matrix;
+}
+
+function displayResults(result) {
+  // Update scores
+  document.getElementById('impactScore').textContent = (result.score > 0 ? '+' : '') + result.score;
+  document.getElementById('impactLabel').textContent = result.score > 30 ? '利好' : result.score < -30 ? '利空' : '中性';
+
+  const sentimentCard = document.querySelector('.impact-card.info');
+  sentimentCard.className = 'impact-card ' + (result.score > 30 ? 'positive' : result.score < -30 ? 'negative' : 'neutral');
+
+  document.getElementById('sentimentScore').textContent = result.sentiment === 'positive' ? '积极' : result.sentiment === 'negative' ? '消极' : '中性';
+  document.getElementById('sentimentLabel').textContent = result.sentiment === 'positive' ? '买入信号' : result.sentiment === 'negative' ? '卖出信号' : '观望';
+
+  document.getElementById('riskScore').textContent = result.risk === 'high' ? '高' : result.risk === 'medium' ? '中' : '低';
+  document.getElementById('riskLabel').textContent = result.risk === 'high' ? '需警惕' : result.risk === 'medium' ? '可控' : '安全';
+
+  document.getElementById('durationScore').textContent = result.duration;
+  document.getElementById('durationLabel').textContent = result.duration.includes('短期') ? '1周内' : result.duration.includes('中期') ? '1月内' : '持续性';
+
+  // Update gauge
+  const normalizedScore = (result.score + 100) / 2; // Convert -100~100 to 0~100
+  const markerRotation = -90 + (normalizedScore * 1.8); // -90deg to 90deg
+  document.getElementById('gaugeMarker').style.transform = `rotate(${markerRotation}deg)`;
+
+  // Clip path for gauge fill
+  const clipAngle = 0 + (normalizedScore * 0.9); // 0 to 90 degrees
+  document.getElementById('gaugeFill').style.clipPath = `polygon(0 100%, 50% 100%, 50% ${100 - clipAngle}%, 0 100%)`;
+
+  // Update affected assets
+  const assetsHtml = result.affectedAssets.map(asset => `
+    <div class="asset-card ${asset.impact}">
+      <div class="asset-info">
+        <h4>${asset.name}</h4>
+        <p>预计波动</p>
+      </div>
+      <div class="asset-impact">
+        <div class="score">${asset.score}</div>
+        <span class="label">${asset.impact === 'positive' ? '利好' : asset.impact === 'negative' ? '利空' : '中性'}</span>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('affectedAssets').innerHTML = assetsHtml;
+
+  // Update historical events
+  const historyHtml = result.historical.map(item => `
+    <div class="history-item">
+      <div class="history-date">${item.date}</div>
+      <div class="history-event">${item.event} → ${item.market}</div>
+      <div class="history-outcome ${item.outcome}">${item.outcome === 'positive' ? '正向' : item.outcome === 'negative' ? '负向' : '中性'}</div>
+    </div>
+  `).join('');
+  document.getElementById('historyList').innerHTML = historyHtml;
+
+  // Update analysis boxes
+  document.getElementById('bullishFactors').innerHTML = result.bullishFactors.map(f => `<li>${f}</li>`).join('');
+  document.getElementById('bearishFactors').innerHTML = result.bearishFactors.map(f => `<li>${f}</li>`).join('');
+  document.getElementById('coreLogic').innerHTML = result.coreLogic.map(c => `<li>${c}</li>`).join('');
+  document.getElementById('timeDimension').innerHTML = result.timeDimension.map(t => `<li>${t}</li>`).join('');
+
+  // Update actions
+  const actionsHtml = result.actions.map(action => `
+    <div class="action-item">
+      <div class="action-priority ${action.priority}">${action.priority === 'high' ? '1' : action.priority === 'medium' ? '2' : '3'}</div>
+      <div class="action-content">
+        <h4>${action.title}</h4>
+        <p>${action.desc}</p>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('actionList').innerHTML = actionsHtml;
+
+  // Update matrix
+  const matrixHtml = result.matrix.map(row => `
+    <tr>
+      <td>${row.name}</td>
+      <td style="color: ${row.short === '↑' ? 'var(--accent-green)' : row.short === '↓' ? 'var(--accent-red)' : 'var(--accent-yellow)'}">${row.short}</td>
+      <td>${row.medium}</td>
+      <td>${row.long}</td>
+      <td><span class="quick-event-btn" style="cursor: default;">${row.advice}</span></td>
+    </tr>
+  `).join('');
+  document.getElementById('matrixBody').innerHTML = matrixHtml;
+}
+
+// ==================== CALENDAR ====================
+function renderCalendar() {
+  const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+  document.getElementById('currentMonth').textContent = `${currentYear}年 ${monthNames[currentMonth]}`;
+
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
+  const startDay = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+
+  let html = '';
+  const today = new Date();
+
+  // Previous month days
+  const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
+  for (let i = startDay - 1; i >= 0; i--) {
+    html += `<div class="calendar-day other-month"><span>${prevMonthDays - i}</span></div>`;
+  }
+
+  // Current month days
+  for (let day = 1; day <= totalDays; day++) {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const events = CALENDAR_EVENTS.filter(e => e.date === dateStr);
+    const isToday = today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+
+    let dotsHtml = '';
+    let countHtml = '';
+    if (events.length > 0) {
+      const topEvent = events[0];
+      dotsHtml = `<div class="event-dot ${topEvent.type}"></div>`;
+      countHtml = `<span class="event-count">+${events.length}</span>`;
+    }
+
+    html += `<div class="calendar-day${isToday ? ' today' : ''}" onclick="showDayEvents('${dateStr}')">
+      <span>${day}</span>
+      ${dotsHtml}
+      ${countHtml}
+    </div>`;
+  }
+
+  // Next month days
+  const remaining = 42 - (startDay + totalDays);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="calendar-day other-month"><span>${i}</span></div>`;
+  }
+
+  document.getElementById('calendarDays').innerHTML = html;
+
+  // Render upcoming events
+  renderUpcomingEvents();
+}
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderCalendar();
+}
+
+function showDayEvents(date) {
+  const events = CALENDAR_EVENTS.filter(e => e.date === date);
+  if (events.length > 0) {
+    alert(`${date} 事件:\n\n${events.map(e => `• ${e.title} (${e.category})`).join('\n')}`);
+  }
+}
+
+function renderUpcomingEvents() {
+  const today = new Date();
+  const upcoming = CALENDAR_EVENTS
+    .filter(e => new Date(e.date) >= today)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 6);
+
+  const html = upcoming.map(event => `
+    <div class="macro-event-card ${event.type}">
+      <h4>${event.title}</h4>
+      <div class="meta">
+        <span>📅 ${event.date}</span>
+        <span>🏷️ ${event.category}</span>
+      </div>
+      <p>重要程度: ${event.type === 'high' ? '⭐⭐⭐ 高' : event.type === 'medium' ? '⭐⭐ 中' : '⭐ 低'}</p>
+    </div>
+  `).join('');
+
+  document.getElementById('upcomingEvents').innerHTML = html;
+}
+
+// ==================== EVENT LIBRARY ====================
+function renderEventLibrary() {
+  let html = '';
+  for (const [key, category] of Object.entries(EVENT_LIBRARY)) {
+    html += `
+      <div class="library-category">
+        <div class="category-header">
+          <span>${category.icon}</span>
+          <span>${category.name}</span>
+        </div>
+        <div class="category-events">
+          ${category.events.map(event => `
+            <div class="library-event" onclick="selectLibraryEvent(this, '${event.text}')">
+              ${event.text}
+              <span class="event-impact-mini ${event.impact}">${event.impact === 'positive' ? '利好' : event.impact === 'negative' ? '利空' : '中性'}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  document.getElementById('eventLibrary').innerHTML = html;
+}
+
+function selectLibraryEvent(el, text) {
+  document.querySelectorAll('.library-event').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('eventInput').value = text;
+  document.querySelector('[data-tab="analyzer"]').click();
+}
+
+// ==================== WATCHLIST ====================
+function renderWatchlist() {
+  const html = WATCHLIST.map(stock => `
+    <div class="watchlist-item">
+      <h4>${stock.name}</h4>
+      <div class="price">¥${stock.price.toFixed(2)}</div>
+      <div class="change ${stock.change >= 0 ? 'up' : 'down'}">
+        ${stock.change >= 0 ? '↑' : '↓'} ${Math.abs(stock.change).toFixed(2)}%
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('watchlistGrid').innerHTML = html;
+
+  // Render sentiment bars
+  const sentimentData = [
+    { label: '周一', value: 35, type: 'neutral' },
+    { label: '周二', value: 55, type: 'positive' },
+    { label: '周三', value: 70, type: 'positive' },
+    { label: '周四', value: 45, type: 'neutral' },
+    { label: '周五', value: 80, type: 'positive' }
+  ];
+
+  const barsHtml = sentimentData.map(d => `
+    <div class="sentiment-bar ${d.type}" style="height: ${d.value}%" data-label="${d.label}"></div>
+  `).join('');
+  document.getElementById('sentimentBars').innerHTML = barsHtml;
+}
+
+function addToWatchlist() {
+  const code = prompt('请输入股票代码（如：600519.SH）:');
+  if (code) {
+    WATCHLIST.push({ code, name: code, price: 0, change: 0 });
+    renderWatchlist();
+    alert('已添加: ' + code);
+  }
+}
+
+// ==================== SETTINGS ====================
+function toggleSwitch(el) {
+  el.classList.toggle('active');
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+  updateTime();
+  setInterval(updateTime, 1000);
+  renderCalendar();
+  renderEventLibrary();
+  renderWatchlist();
+});
+</script>
+</body>
+</html>

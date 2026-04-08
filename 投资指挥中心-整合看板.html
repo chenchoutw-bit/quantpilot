@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joe 投资指挥中心 | 全系统整合看板</title>
+<script id="market-data-inject">window.__MARKET_DATA__={"timestamp":"2026-04-08T23:32:33.201501","isHoliday":false,"commodities":{"WTI":{"key":"WTI","name":"WTI","price":95.739,"change":-0.511,"prevClose":96.25,"changePct":-0.53,"source":"Sina Finance","isLastClose":false},"BRENT":{"key":"BRENT","name":"BRENT","price":95.496,"change":0.096,"prevClose":95.4,"changePct":0.1,"source":"Sina Finance","isLastClose":false},"GLD_PRICE":{"key":"GLD_PRICE","name":"GLD_PRICE","price":4774.54,"change":-2.66,"prevClose":4777.2,"changePct":-0.06,"source":"Sina Finance","isLastClose":false},"SLV_PRICE":{"key":"SLV_PRICE","name":"SLV_PRICE","price":75.272,"change":-0.143,"prevClose":75.415,"changePct":-0.19,"source":"Sina Finance","isLastClose":false},"NG":{"key":"NG","name":"NG","price":2.748,"change":-0.003,"prevClose":2.751,"changePct":-0.11,"source":"Sina Finance","isLastClose":false}},"indices":{"SPX":{"key":"SPX","name":"S&P 500","price":6757.0,"prevClose":6616.85,"change":140.15,"changePct":2.12,"source":"Tencent Finance","isLastClose":false},"CSI300":{"key":"CSI300","name":"CSI 300","price":4595.56,"prevClose":4440.62,"change":154.94,"changePct":3.49,"source":"Tencent Finance","isLastClose":false},"NDX":{"key":"NDX","name":"NASDAQ 100","price":24841.71,"prevClose":24202.37,"change":639.34,"changePct":2.64,"source":"Tencent Finance","isLastClose":false},"HSI":{"key":"HSI","name":"Hang Seng","price":25893.02,"prevClose":25116.53,"change":776.49,"changePct":3.09,"source":"Tencent Finance","isLastClose":false}},"macro":{"TNX":{"key":"TNX","name":"US 10Y Bond","price":0.0435,"source":"Fallback","type":"bond"},"VIX":{"key":"VIX","name":"VIX","price":27.04,"source":"Fallback","type":"index"}},"forex":{},"status":{"ok":true,"sources":["Sina Finance","Tencent Finance"],"note":"实时行情"}};</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #080c18;
+  --card: #0f1628;
+  --card2: #162035;
+  --card3: #1c2a45;
+  --border: #1e2d4a;
+  --border2: #243650;
+  --text: #e2ecff;
+  --text2: #7a90b8;
+  --text3: #4a6080;
+  --blue: #4f8ef7;
+  --blue2: #2a6ee8;
+  --red: #ef4444;
+  --green: #22c55e;
+  --gold: #f59e0b;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+  --orange: #f97316;
+  --pink: #ec4899;
+  --red2: #dc2626;
+  --yellow: #eab308;
+  --teal: #14b8a6;
+  --lime: #84cc16;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'PingFang SC', -apple-system, 'Microsoft YaHei', sans-serif; font-size: 14px; min-height: 100vh; }
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #0a1020 0%, #0f1a30 60%, #0d1830 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute; top: -60%; left: -5%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(79,142,247,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header::after {
+  content: '';
+  position: absolute; top: -40%; right: 0%;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-content { position: relative; z-index: 1; }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+.header h1 span { color: var(--blue); }
+.header-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.badges { display: flex; gap: 8px; align-items: center; }
+.badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-blue { background: rgba(79,142,247,0.15); color: var(--blue); border: 1px solid rgba(79,142,247,0.3); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.badge-gold { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+.badge-purple { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex; gap: 4px; padding: 0 32px;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  overflow-x: auto; position: sticky; top: 0; z-index: 100;
+}
+.nav-tab {
+  padding: 12px 18px; font-size: 13px; font-weight: 500; cursor: pointer;
+  color: var(--text2); border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all 0.2s;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.nav-tab .icon { margin-right: 6px; }
+
+/* Main Container */
+.container { max-width: 1600px; margin: 0 auto; padding: 20px 32px; }
+
+/* Section */
+.section { display: none; }
+.section.active { display: block; }
+.section-title {
+  font-size: 15px; font-weight: 700; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::before { content: ''; width: 3px; height: 16px; background: var(--blue); border-radius: 2px; display: inline-block; }
+
+/* KPI Cards */
+.kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+}
+.kpi-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-value { font-size: 24px; font-weight: 800; }
+.kpi-sub { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+.grid-left-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.grid-right-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.card-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.card-title .icon { font-size: 15px; }
+.card-more { font-size: 11px; color: var(--text2); cursor: pointer; }
+.card-more:hover { color: var(--blue); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+td { padding: 9px 10px; border-bottom: 1px solid rgba(30,45,74,0.5); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Tags */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-gold { background: rgba(245,158,11,0.15); color: var(--gold); }
+.tag-equity { background: rgba(79,142,247,0.15); color: var(--blue); }
+.tag-bond { background: rgba(34,197,94,0.15); color: var(--green); }
+.tag-commodity { background: rgba(240,136,62,0.15); color: var(--orange); }
+.tag-mixed { background: rgba(139,92,246,0.15); color: var(--purple); }
+.tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.tag-purple { background: rgba(139,92,246,0.15); color: var(--purple); }
+
+/* Color utilities */
+.green { color: var(--green); }
+.red { color: var(--red); }
+.gold { color: var(--gold); }
+.blue { color: var(--blue); }
+.orange { color: var(--orange); }
+.purple { color: var(--purple); }
+.yellow { color: var(--yellow); }
+.cyan { color: var(--cyan); }
+.text2 { color: var(--text2); }
+.text3 { color: var(--text3); }
+
+/* War Index specific */
+.war-score { font-size: 56px; font-weight: 900; text-align: center; line-height: 1; }
+.war-score-label { font-size: 12px; color: var(--text2); text-align: center; margin-top: 4px; }
+.score-bar-wrap { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+.dim-card { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.dim-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.dim-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.dim-name { font-size: 13px; font-weight: 500; width: 60px; flex-shrink: 0; }
+.dim-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.dim-bar-fill { height: 100%; border-radius: 3px; }
+.dim-score { font-size: 13px; font-weight: 700; width: 30px; text-align: right; flex-shrink: 0; }
+
+/* Signal box */
+.signal-box { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+.signal-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+.signal-value { font-size: 20px; font-weight: 800; }
+
+/* Market data */
+.market-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.market-item { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.market-name { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.market-value { font-size: 18px; font-weight: 700; }
+.market-change { font-size: 12px; margin-top: 2px; }
+
+/* Timeline */
+.timeline-list { position: relative; }
+.timeline-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(30,45,74,0.4); align-items: flex-start; }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-date { font-size: 11px; color: var(--text2); min-width: 60px; padding-top: 2px; }
+.timeline-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.timeline-content { flex: 1; font-size: 13px; line-height: 1.5; }
+.timeline-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+/* Alert boxes */
+.alert-box { border-radius: 8px; padding: 10px 14px; font-size: 13px; display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+.alert-box:last-child { margin-bottom: 0; }
+.alert-red { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+.alert-yellow { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.2); }
+.alert-green { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); }
+.alert-blue { background: rgba(79,142,247,0.08); border: 1px solid rgba(79,142,247,0.2); }
+.alert-icon { font-size: 14px; flex-shrink: 0; }
+.alert-text { flex: 1; line-height: 1.5; }
+.alert-text strong { color: var(--text); }
+
+/* Attribution bars */
+.attr-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+.attr-name { font-size: 12px; width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attr-bar-wrap { flex: 1; height: 14px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+.attr-bar-inner { height: 100%; border-radius: 4px; }
+.attr-pct { font-size: 12px; font-weight: 700; width: 45px; text-align: right; flex-shrink: 0; }
+.attr-ret { font-size: 11px; color: var(--text2); width: 50px; text-align: right; flex-shrink: 0; }
+
+/* Chart containers */
+.chart-container { position: relative; height: 260px; }
+.chart-container-sm { position: relative; height: 200px; }
+.chart-container-xs { position: relative; height: 140px; }
+
+/* Compare bars */
+.compare-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(30,45,74,0.3); }
+.compare-row:last-child { border-bottom: none; }
+.compare-label { font-size: 13px; width: 60px; flex-shrink: 0; }
+.compare-bars { flex: 1; }
+.bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.bar-label { font-size: 10px; color: var(--text2); width: 28px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 7px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.bar-value { font-size: 11px; width: 40px; text-align: right; flex-shrink: 0; }
+
+/* AI Dashboard specific */
+.buy-signal { background: rgba(34,197,94,0.15); color: var(--green); border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600; }
+.sell-signal { background: rgba(239,68,68,0.15); color: var(--red); border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600; }
+.hold-signal { background: rgba(139,139,139,0.15); color: var(--text2); border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600; }
+
+/* Scrollable table container */
+.table-scroll { max-height: 380px; overflow-y: auto; }
+.table-scroll::-webkit-scrollbar { width: 4px; }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Footer */
+.footer { text-align: center; color: var(--text3); font-size: 11px; padding: 24px; border-top: 1px solid var(--border); margin-top: 32px; }
+
+/* Refresh Button */
+#refresh-btn:hover {
+  background: rgba(79,142,247,0.25) !important;
+  transform: scale(1.03);
+}
+#refresh-btn:active {
+  transform: scale(0.97);
+}
+#refresh-btn.spinning #refresh-icon {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Data status indicator */
+.data-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.data-badge-live { background: rgba(34,197,94,0.15); color: var(--green); }
+.data-badge-cached { background: rgba(245,158,11,0.15); color: var(--gold); }
+.data-badge-offline { background: rgba(239,68,68,0.15); color: var(--red); }
+
+/* Loading pulse for market items */
+.market-item.loading {
+  opacity: 0.5;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* Gold section highlight */
+.gold-highlight {
+  border: 1px solid rgba(245,158,11,0.4) !important;
+  background: rgba(245,158,11,0.03) !important;
+}
+
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media (max-width: 1200px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .grid-2, .grid-3, .grid-4, .grid-left-2, .grid-right-2 { grid-template-columns: 1fr; }
+  .market-grid { grid-template-columns: repeat(2, 1fr); }
+  .container { padding: 16px; }
+  .header { padding: 16px; }
+  .nav-tabs { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-content">
+    <div class="header-top">
+      <div>
+        <h1>📊 Joe 投资<span>指挥中心</span></h1>
+        <div class="header-meta">全系统整合看板 · War Index × 投资组合 × AI量化 × 黄金研究 | <span id="header-date"></span></div>
+      </div>
+      <div class="badges">
+        <span class="badge badge-red">🔴 War Index 81</span>
+        <span class="badge badge-gold" id="hdr-gold-price">🥇 黄金 —</span>
+        <span class="badge badge-green" id="hdr-system-status">✅ 系统正常</span>
+        <button id="refresh-btn" onclick="refreshMarketData()" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3);color:var(--blue);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s;" title="从新浪/腾讯API获取最新市场数据">
+          <span id="refresh-icon">🔄</span> 刷新数据
+        </button>
+        <span id="last-update" style="font-size:11px;color:var(--text3);"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchSection('overview')"><span class="icon">🎯</span>总览</div>
+  <div class="nav-tab" onclick="switchSection('warindex')"><span class="icon">⚔️</span>War Index</div>
+  <div class="nav-tab" onclick="switchSection('portfolio')"><span class="icon">💼</span>投资组合</div>
+  <div class="nav-tab" onclick="switchSection('ai-trading')"><span class="icon">🤖</span>AI量化系统</div>
+  <div class="nav-tab" onclick="switchSection('fund')"><span class="icon">📈</span>基金组合</div>
+  <div class="nav-tab" onclick="switchSection('gold')"><span class="icon">🥇</span>黄金研究</div>
+  <div class="nav-tab" onclick="switchSection('schedule')"><span class="icon">⏰</span>定时任务</div>
+</div>
+
+<div class="container">
+
+<!-- ============ SECTION: 总览 ============ -->
+<div id="sec-overview" class="section active">
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">War Index</div>
+      <div class="kpi-value red">81</div>
+      <div class="kpi-sub">🔴 危机区间</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">建议仓位</div>
+      <div class="kpi-value gold">50%</div>
+      <div class="kpi-sub">最大回撤20-40%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">总持仓规模</div>
+      <div class="kpi-value blue">¥544,144</div>
+      <div class="kpi-sub">8只基金 + 股票组合</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">组合总收益</div>
+      <div class="kpi-value green">+35.3%</div>
+      <div class="kpi-sub">跑赢沪深300基准</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">AI量化收益</div>
+      <div class="kpi-value green">+9.80%</div>
+      <div class="kpi-sub">超额 +8.52%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">黄金浮动盈亏</div>
+      <div class="kpi-value green">+¥141,978</div>
+      <div class="kpi-sub">贡献度51.2%</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <!-- War Index Overview -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">⚔️</span>War Index 实时状态</div>
+        <span class="badge badge-red" id="ov-war-badge">🔴 加载中</span>
+      </div>
+      <div class="grid-2">
+        <div style="text-align:center;padding:10px 0;">
+          <div style="font-size:52px;font-weight:900;line-height:1;" id="ov-war-score-display">—</div>
+          <div style="font-size:12px;color:var(--text2);">总分 (满分100)</div>
+          <div class="score-bar-wrap"><div class="score-bar-fill" id="ov-war-bar" style="width:0%;"></div></div>
+        </div>
+        <div id="ov-war-dims">
+          <div class="dim-row">
+            <div class="dim-icon" style="background:rgba(239,68,68,0.15);">🔥</div>
+            <div class="dim-name">军事</div>
+            <div class="dim-bar-wrap"><div class="dim-bar-fill" id="dim-bar-military" style="width:0%;"></div></div>
+            <div class="dim-score" id="dim-score-military" style="color:var(--text2);">—</div>
+          </div>
+          <div class="dim-row">
+            <div class="dim-icon" style="background:rgba(245,158,11,0.15);">🛢</div>
+            <div class="dim-name">能源</div>
+            <div class="dim-bar-wrap"><div class="dim-bar-fill" id="dim-bar-energy" style="width:0%;"></div></div>
+            <div class="dim-score" id="dim-score-energy" style="color:var(--text2);">—</div>
+          </div>
+          <div class="dim-row">
+            <div class="dim-icon" style="background:rgba(79,142,247,0.15);">📉</div>
+            <div class="dim-name">市场</div>
+            <div class="dim-bar-wrap"><div class="dim-bar-fill" id="dim-bar-market" style="width:0%;"></div></div>
+            <div class="dim-score" id="dim-score-market" style="color:var(--text2);">—</div>
+          </div>
+          <div class="dim-row">
+            <div class="dim-icon" style="background:rgba(139,92,246,0.15);">🤝</div>
+            <div class="dim-name">外交</div>
+            <div class="dim-bar-wrap"><div class="dim-bar-fill" id="dim-bar-diplomacy" style="width:0%;"></div></div>
+            <div class="dim-score" id="dim-score-diplomacy" style="color:var(--text2);">—</div>
+          </div>
+          <div class="dim-row">
+            <div class="dim-icon" style="background:rgba(240,136,62,0.15);">🚢</div>
+            <div class="dim-name">供应</div>
+            <div class="dim-bar-wrap"><div class="dim-bar-fill" id="dim-bar-supply" style="width:0%;"></div></div>
+            <div class="dim-score" id="dim-score-supply" style="color:var(--text2);">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Snapshot -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📡</span>实时市场数据</div>
+        <span class="card-more" id="market-update-time">加载中...</span>
+      </div>
+      <div class="market-grid" id="market-grid">
+        <div class="market-item">
+          <div class="market-name">WTI 原油</div>
+          <div class="market-value gold" id="md-wti-price">$—</div>
+          <div class="market-change" id="md-wti-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">布伦特</div>
+          <div class="market-value gold" id="md-brent-price">$—</div>
+          <div class="market-change" id="md-brent-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">黄金</div>
+          <div class="market-value gold" id="md-gld-price">$—</div>
+          <div class="market-change" id="md-gld-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">白银</div>
+          <div class="market-value" id="md-slv-price">$—</div>
+          <div class="market-change" id="md-slv-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">VIX</div>
+          <div class="market-value" id="md-vix-price">—</div>
+          <div class="market-change" id="md-vix-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">美元指数</div>
+          <div class="market-value" id="md-dxy-price">—</div>
+          <div class="market-change" id="md-dxy-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">标普500</div>
+          <div class="market-value blue" id="md-spx-price">—</div>
+          <div class="market-change" id="md-spx-chg">—</div>
+        </div>
+        <div class="market-item">
+          <div class="market-name">沪深300</div>
+          <div class="market-value" id="md-csi300-price">—</div>
+          <div class="market-change" id="md-csi300-chg">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 资产配置 vs 全天候 -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">⚖️</span>当前配置 vs 桥水全天候目标</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="compare-row">
+          <div class="compare-label">🟡 黄金</div>
+          <div class="compare-bars">
+            <div class="bar-row"><div class="bar-label" style="color:var(--blue)">目标</div><div class="bar-track"><div class="bar-fill" style="width:7.5%;background:var(--blue);opacity:0.5;"></div></div><div class="bar-value" style="color:var(--blue)">7.5%</div></div>
+            <div class="bar-row"><div class="bar-label" style="color:var(--red)">实际</div><div class="bar-track"><div class="bar-fill" style="width:34.6%;background:var(--red);"></div></div><div class="bar-value" style="color:var(--red)">34.6%</div></div>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-label">📈 权益</div>
+          <div class="compare-bars">
+            <div class="bar-row"><div class="bar-label" style="color:var(--blue)">目标</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--blue);opacity:0.5;"></div></div><div class="bar-value" style="color:var(--blue)">30.0%</div></div>
+            <div class="bar-row"><div class="bar-label" style="color:var(--green)">实际</div><div class="bar-track"><div class="bar-fill" style="width:34.7%;background:var(--green);"></div></div><div class="bar-value" style="color:var(--green)">34.7%</div></div>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-label">🏦 债券</div>
+          <div class="compare-bars">
+            <div class="bar-row"><div class="bar-label" style="color:var(--blue)">目标</div><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--blue);opacity:0.5;"></div></div><div class="bar-value" style="color:var(--blue)">55.0%</div></div>
+            <div class="bar-row"><div class="bar-label" style="color:var(--red)">实际</div><div class="bar-track"><div class="bar-fill" style="width:17.5%;background:var(--red);"></div></div><div class="bar-value" style="color:var(--red)">17.5%</div></div>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-label">🛢 商品</div>
+          <div class="compare-bars">
+            <div class="bar-row"><div class="bar-label" style="color:var(--blue)">目标</div><div class="bar-track"><div class="bar-fill" style="width:7.5%;background:var(--blue);opacity:0.5;"></div></div><div class="bar-value" style="color:var(--blue)">7.5%</div></div>
+            <div class="bar-row"><div class="bar-label" style="color:var(--red)">实际</div><div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--red);"></div></div><div class="bar-value" style="color:var(--red)">0.0%</div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="chart-container-sm">
+          <canvas id="overviewPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快速操作 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">⚡</span>快捷操作</div>
+    </div>
+    <div class="grid-4">
+      <div class="dim-card" onclick="switchSection('warindex')" style="cursor:pointer;text-align:center;">
+        <div style="font-size:24px;margin-bottom:6px;">⚔️</div>
+        <div style="font-size:13px;font-weight:600;">War Index</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;">晨报/午报/晚报</div>
+      </div>
+      <div class="dim-card" onclick="switchSection('portfolio')" style="cursor:pointer;text-align:center;">
+        <div style="font-size:24px;margin-bottom:6px;">💼</div>
+        <div style="font-size:13px;font-weight:600;">投资组合</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;">5组合全览</div>
+      </div>
+      <div class="dim-card" onclick="switchSection('ai-trading')" style="cursor:pointer;text-align:center;">
+        <div style="font-size:24px;margin-bottom:6px;">🤖</div>
+        <div style="font-size:13px;font-weight:600;">AI量化</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;">53只股票分析</div>
+      </div>
+      <div class="dim-card" onclick="switchSection('fund')" style="cursor:pointer;text-align:center;">
+        <div style="font-size:24px;margin-bottom:6px;">📈</div>
+        <div style="font-size:13px;font-weight:600;">基金组合</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;">全天候对比</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ SECTION: War Index ============ -->
+<div id="sec-warindex" class="section">
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <!-- War Index 大图 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">⚔️</span>War Index 评分系统</div>
+        <span class="badge badge-red" id="wi-header-badge">🔴 计算中...</span>
+      </div>
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:80px;font-weight:900;line-height:1;" id="wi-main-score">—</div>
+        <div style="font-size:14px;color:var(--text2);margin-top:8px;" id="wi-zone-label">等待数据...</div>
+        <div class="score-bar-wrap" style="max-width:400px;margin:16px auto 0;">
+          <div class="score-bar-fill" id="wi-score-bar" style="width:0%;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;max-width:400px;margin:6px auto 0;font-size:10px;color:var(--text2);">
+          <span>0 缓和</span><span>30</span><span>60</span><span>80 危机</span><span>100</span>
+        </div>
+        <!-- War Index 说明 -->
+        <div style="margin-top:12px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto;">
+          <div style="font-size:11px;color:var(--text2);line-height:1.8;">
+            <span style="color:var(--green);">🟢 缓和 0-30</span> → 仓位90%&nbsp;&nbsp;
+            <span style="color:var(--yellow);">🟡 紧张 30-60</span> → 仓位80%<br>
+            <span style="color:var(--orange);">🟠 升级 60-80</span> → 仓位70%&nbsp;&nbsp;
+            <span style="color:var(--red);">🔴 危机 80+</span> → 仓位≤50%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 五维评分 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📊</span>五维评分详情（自动计算）</div>
+        <span class="badge badge-gold" id="wi-data-source-badge">⚙️ 数据驱动</span>
+      </div>
+      <div style="padding:8px 0;">
+        <div class="dim-row">
+          <div class="dim-icon" style="background:rgba(239,68,68,0.15);">🔥</div>
+          <div class="dim-name">军事强度</div>
+          <div class="dim-bar-wrap"><div class="dim-bar-fill" id="wi-bar-military" style="width:0%;"></div></div>
+          <div class="dim-score" id="wi-score-military">—</div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-icon" style="background:rgba(245,158,11,0.15);">🛢</div>
+          <div class="dim-name">能源冲击</div>
+          <div class="dim-bar-wrap"><div class="dim-bar-fill" id="wi-bar-energy" style="width:0%;"></div></div>
+          <div class="dim-score" id="wi-score-energy">—</div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-icon" style="background:rgba(79,142,247,0.15);">📉</div>
+          <div class="dim-name">市场反应</div>
+          <div class="dim-bar-wrap"><div class="dim-bar-fill" id="wi-bar-market" style="width:0%;"></div></div>
+          <div class="dim-score" id="wi-score-market">—</div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-icon" style="background:rgba(139,92,246,0.15);">🤝</div>
+          <div class="dim-name">外交状态</div>
+          <div class="dim-bar-wrap"><div class="dim-bar-fill" id="wi-bar-diplomacy" style="width:0%;"></div></div>
+          <div class="dim-score" id="wi-score-diplomacy">—</div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-icon" style="background:rgba(240,136,62,0.15);">🚢</div>
+          <div class="dim-name">供应链风险</div>
+          <div class="dim-bar-wrap"><div class="dim-bar-fill" id="wi-bar-supply" style="width:0%;"></div></div>
+          <div class="dim-score" id="wi-score-supply">—</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <div class="dim-row">
+          <div class="dim-icon" style="background:rgba(34,197,94,0.15);">📋</div>
+          <div class="dim-name">仓位建议</div>
+          <div style="flex:1;text-align:center;">
+            <span class="badge badge-red" id="wi-position-badge">计算中...</span>
+          </div>
+          <div class="dim-score" id="wi-position-label" style="color:var(--text2);width:50px;">—</div>
+        </div>
+        <!-- 数据来源详情 -->
+        <div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.6;" id="wi-signal-detail">
+          数据加载中...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- 动态分析摘要 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🌅</span>实时分析摘要</div>
+        <span class="badge badge-gold" id="wi-analysis-time">⏱ 计算中</span>
+      </div>
+      <div id="wi-alert-container">
+        <div class="alert-box alert-blue">
+          <div class="alert-icon">⏳</div>
+          <div class="alert-text"><strong>正在分析市场数据...</strong><br>刷新数据后将自动生成分析摘要。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关键事件时间线（动态生成） -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📅</span>近期关键事件</div>
+        <span class="badge badge-purple" id="wi-events-count">—</span>
+      </div>
+      <div class="timeline-list" id="wi-timeline-container">
+        <div class="alert-box alert-blue">
+          <div class="alert-icon">⏳</div>
+          <div class="alert-text">刷新后将根据当前 War Index 生成事件提醒。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ SECTION: 投资组合 ============ -->
+<div id="sec-portfolio" class="section">
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">💼</span>Joe 全市场投资组合总览（5组合 15项资产）</div>
+      <span class="badge badge-green">实时追踪</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>资产名称</th>
+            <th>代码</th>
+            <th>组合</th>
+            <th class="text-right">权重</th>
+            <th class="text-right">日涨跌</th>
+            <th class="text-right">近1月</th>
+            <th class="text-right">近3月</th>
+            <th class="text-right">今年以来</th>
+            <th class="text-right">年化波动</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>TLT</strong><br><span style="font-size:11px;color:var(--text2)">长期美债ETF</span></td>
+            <td style="color:var(--text2)">TLT.US</td>
+            <td><span class="tag tag-bond">P1</span></td>
+            <td class="text-right">15.96%</td>
+            <td class="text-right green">+0.31%</td>
+            <td class="text-right green">+1.82%</td>
+            <td class="text-right red">-2.15%</td>
+            <td class="text-right green">+2.61%</td>
+            <td class="text-right"><span style="color:var(--gold)">12.8%</span></td>
+          </tr>
+          <tr>
+            <td><strong>GLD</strong><br><span style="font-size:11px;color:var(--text2)">黄金ETF(SPDR)</span></td>
+            <td style="color:var(--text2)">GLD.US</td>
+            <td><span class="tag tag-bond">P1</span></td>
+            <td class="text-right">10.88%</td>
+            <td class="text-right green">+1.24%</td>
+            <td class="text-right green">+8.42%</td>
+            <td class="text-right green">+14.91%</td>
+            <td class="text-right green">+17.63%</td>
+            <td class="text-right"><span style="color:var(--gold)">14.2%</span></td>
+          </tr>
+          <tr>
+            <td><strong>TSM</strong><br><span style="font-size:11px;color:var(--text2)">台积电ADR</span></td>
+            <td style="color:var(--text2)">TSM.US</td>
+            <td><span class="tag tag-bond">P1</span></td>
+            <td class="text-right">2.65%</td>
+            <td class="text-right red">-1.83%</td>
+            <td class="text-right red">-8.62%</td>
+            <td class="text-right red">-12.07%</td>
+            <td class="text-right red">-16.06%</td>
+            <td class="text-right"><span style="color:var(--red)">34.7%</span></td>
+          </tr>
+          <tr>
+            <td><strong>MU</strong><br><span style="font-size:11px;color:var(--text2)">美光科技</span></td>
+            <td style="color:var(--text2)">MU.US</td>
+            <td><span class="tag tag-bond">P1</span></td>
+            <td class="text-right">1.90%</td>
+            <td class="text-right red">-2.41%</td>
+            <td class="text-right red">-11.72%</td>
+            <td class="text-right red">-19.84%</td>
+            <td class="text-right red">-28.47%</td>
+            <td class="text-right"><span style="color:var(--red)">51.3%</span></td>
+          </tr>
+          <tr>
+            <td><strong>黄金ETF(华安)</strong><br><span style="font-size:11px;color:var(--text2)">518880.SH</span></td>
+            <td style="color:var(--text2)">518880.SH</td>
+            <td><span class="tag tag-gold">P2</span></td>
+            <td class="text-right">14.34%</td>
+            <td class="text-right green">+1.12%</td>
+            <td class="text-right green">+7.85%</td>
+            <td class="text-right green">+13.44%</td>
+            <td class="text-right green">+16.74%</td>
+            <td class="text-right"><span style="color:var(--gold)">13.9%</span></td>
+          </tr>
+          <tr>
+            <td><strong>医疗保健ETF</strong><br><span style="font-size:11px;color:var(--text2)">512170.SH</span></td>
+            <td style="color:var(--text2)">512170.SH</td>
+            <td><span class="tag tag-gold">P2</span></td>
+            <td class="text-right">1.19%</td>
+            <td class="text-right red">-0.89%</td>
+            <td class="text-right red">-9.53%</td>
+            <td class="text-right red">-16.49%</td>
+            <td class="text-right red">-8.54%</td>
+            <td class="text-right"><span style="color:var(--orange)">22.4%</span></td>
+          </tr>
+          <tr>
+            <td><strong>30年国债ETF</strong><br><span style="font-size:11px;color:var(--text2)">511090.SH</span></td>
+            <td style="color:var(--text2)">511090.SH</td>
+            <td><span class="tag tag-purple">P5</span></td>
+            <td class="text-right">54.2%</td>
+            <td class="text-right green">+0.25%</td>
+            <td class="text-right red">-1.15%</td>
+            <td class="text-right red">-1.84%</td>
+            <td class="text-right red">-3.37%</td>
+            <td class="text-right"><span style="color:var(--green)">4.8%</span></td>
+          </tr>
+          <tr>
+            <td><strong>港股红利ETF</strong><br><span style="font-size:11px;color:var(--text2)">159691.SZ</span></td>
+            <td style="color:var(--text2)">159691.SZ</td>
+            <td><span class="tag tag-purple">P5</span></td>
+            <td class="text-right">14.4%</td>
+            <td class="text-right red">-2.08%</td>
+            <td class="text-right green">+4.51%</td>
+            <td class="text-right red">-4.06%</td>
+            <td class="text-right green">+5.45%</td>
+            <td class="text-right"><span style="color:var(--gold)">16.3%</span></td>
+          </tr>
+          <tr>
+            <td><strong>沪深300ETF</strong><br><span style="font-size:11px;color:var(--text2)">510300.SH</span></td>
+            <td style="color:var(--text2)">510300.SH</td>
+            <td><span class="tag tag-purple">P5</span></td>
+            <td class="text-right">11.2%</td>
+            <td class="text-right red">-0.68%</td>
+            <td class="text-right green">+1.23%</td>
+            <td class="text-right red">-3.82%</td>
+            <td class="text-right green">+0.64%</td>
+            <td class="text-right"><span style="color:var(--gold)">18.4%</span></td>
+          </tr>
+          <tr>
+            <td><strong>现金宝</strong><br><span style="font-size:11px;color:var(--text2)">货币基金</span></td>
+            <td style="color:var(--text2)">—</td>
+            <td><span class="tag tag-bond">P3</span></td>
+            <td class="text-right">15.99%</td>
+            <td class="text-right green">+0.01%</td>
+            <td class="text-right green">+0.16%</td>
+            <td class="text-right green">+0.49%</td>
+            <td class="text-right green">+0.52%</td>
+            <td class="text-right"><span style="color:var(--green)">0.1%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- 相关性洞察 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🔗</span>关键相关性分析</div>
+      </div>
+      <div class="alert-box alert-red">
+        <div class="alert-icon">📌</div>
+        <div class="alert-text"><strong>GLD ↔ 黄金ETF (0.93)</strong>：境内外黄金高度同步，实质重复持有黄金</div>
+      </div>
+      <div class="alert-box alert-yellow">
+        <div class="alert-icon">📌</div>
+        <div class="alert-text"><strong>TSM ↔ 台湾50 (0.82)</strong>：台积电占台湾50权重75%，隐性重叠</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">📌</div>
+        <div class="alert-text"><strong>TLT ↔ 30年国债 (0.72)</strong>：均为长久期利率债，分散效果有限</div>
+      </div>
+      <div class="alert-box alert-blue">
+        <div class="alert-icon">💡</div>
+        <div class="alert-text"><strong>有效对冲</strong>：TLT ↔ TSM (-0.28)、30Y债 ↔ 台股 (-0.19)</div>
+      </div>
+    </div>
+
+    <!-- 分散化建议 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🛡</span>分散化建议</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">✅</div>
+        <div class="alert-text"><strong>有效分散</strong>：债券(TLT/30Y债) + 黄金 + 股票三类资产整体分散良好</div>
+      </div>
+      <div class="alert-box alert-yellow">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text"><strong>重复暴露</strong>：GLD + 黄金ETF518880 相关性0.93，实质重复持有黄金</div>
+      </div>
+      <div class="alert-box alert-yellow">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text"><strong>风险集中</strong>：TSM.US持仓对台湾50隐性重叠，建议合并管理</div>
+      </div>
+      <div class="alert-box alert-blue">
+        <div class="alert-icon">💡</div>
+        <div class="alert-text"><strong>优化建议</strong>：可将组合一GLD与组合二黄金ETF合并统计为单一黄金仓位</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ SECTION: AI量化系统 ============ -->
+<div id="sec-ai-trading" class="section">
+
+  <!-- KPI Cards -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">总收益率</div>
+      <div class="kpi-value green">+9.80%</div>
+      <div class="kpi-sub">年化 7.44%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">超额收益</div>
+      <div class="kpi-value green">+8.52%</div>
+      <div class="kpi-sub">基准 +1.29%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">夏普比率</div>
+      <div class="kpi-value blue">1.64</div>
+      <div class="kpi-sub">风险调整收益优秀</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">最大回撤</div>
+      <div class="kpi-value red">-7.85%</div>
+      <div class="kpi-sub">可控范围</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">总交易次数</div>
+      <div class="kpi-value">167</div>
+      <div class="kpi-sub">胜率 58.7%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">当前持仓</div>
+      <div class="kpi-value blue">¥558,277</div>
+      <div class="kpi-sub">5只股票</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <!-- 净值曲线 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📈</span>净值曲线 vs 上证50</div>
+      </div>
+      <div class="chart-container">
+        <canvas id="aiEquityChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 当前持仓 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📦</span>当前持仓 (2026-03-23)</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>代码</th>
+            <th>名称</th>
+            <th class="text-right">持仓股数</th>
+            <th class="text-right">成本价</th>
+            <th class="text-right">当前价</th>
+            <th class="text-right">盈亏</th>
+            <th>评分</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>601989.SH</td>
+            <td>中国重工</td>
+            <td class="text-right">21,600</td>
+            <td class="text-right">4.64</td>
+            <td class="text-right">5.10</td>
+            <td class="text-right green">+8.0%</td>
+            <td><span class="buy-signal">0.8</span></td>
+          </tr>
+          <tr>
+            <td>601857.SH</td>
+            <td>中国石油</td>
+            <td class="text-right">10,800</td>
+            <td class="text-right">10.39</td>
+            <td class="text-right">12.07</td>
+            <td class="text-right green">+18.8%</td>
+            <td><span class="buy-signal">9.4</span></td>
+          </tr>
+          <tr>
+            <td>601919.SH</td>
+            <td>中远海控</td>
+            <td class="text-right">7,100</td>
+            <td class="text-right">16.08</td>
+            <td class="text-right">15.17</td>
+            <td class="text-right red">-4.4%</td>
+            <td><span class="sell-signal">-6.7</span></td>
+          </tr>
+          <tr>
+            <td>601669.SH</td>
+            <td>中国电建</td>
+            <td class="text-right">17,800</td>
+            <td class="text-right">6.47</td>
+            <td class="text-right">5.93</td>
+            <td class="text-right red">-10.2%</td>
+            <td><span class="hold-signal">4.0</span></td>
+          </tr>
+          <tr>
+            <td>601088.SH</td>
+            <td>中国神华</td>
+            <td class="text-right">2,200</td>
+            <td class="text-right">49.50</td>
+            <td class="text-right">47.50</td>
+            <td class="text-right red">-4.0%</td>
+            <td><span class="buy-signal">10.4</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px;font-size:12px;color:var(--text2);">
+        总持仓: ¥558,277 | 现金: ¥535,042 | 总资产: <strong>¥1,093,319</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全部53只股票 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📊</span>全部53只股票技术分析 (2026-03-27 真实数据)</div>
+      <div style="display:flex;gap:6px;">
+        <span class="badge badge-green">买入候选 15只</span>
+        <span class="badge badge-red">卖出预警 17只</span>
+        <span class="badge badge-blue">观望 21只</span>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>代码</th>
+            <th>收盘价</th>
+            <th class="text-right">涨跌幅</th>
+            <th class="text-right">RSI</th>
+            <th class="text-right">量比</th>
+            <th class="text-right">评分</th>
+            <th>趋势</th>
+            <th>结构</th>
+            <th>信号</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td><td><strong>601088.SH</strong><br><span style="font-size:11px;color:var(--text2)">中国神华</span></td>
+            <td>47.50</td><td class="text-right red">-0.40%</td><td class="text-right">48.1</td><td class="text-right">0.48</td><td class="text-right"><strong>10.4</strong></td>
+            <td><span class="tag tag-bond">弱上升</span></td><td>弱破位</td>
+            <td><span class="buy-signal">买入</span></td>
+          </tr>
+          <tr>
+            <td>2</td><td><strong>601857.SH</strong><br><span style="font-size:11px;color:var(--text2)">中国石油</span></td>
+            <td>12.07</td><td class="text-right green">+1.09%</td><td class="text-right">38.1</td><td class="text-right">0.72</td><td class="text-right"><strong>9.4</strong></td>
+            <td><span class="tag tag-bond">弱上升</span></td><td>弱破位</td>
+            <td><span class="buy-signal">买入</span></td>
+          </tr>
+          <tr>
+            <td>3</td><td><strong>600309.SH</strong><br><span style="font-size:11px;color:var(--text2)">万华化学</span></td>
+            <td>79.98</td><td class="text-right green">+0.95%</td><td class="text-right">29.9</td><td class="text-right">0.79</td><td class="text-right"><strong>5.0</strong></td>
+            <td><span class="tag tag-bond">弱上升</span></td><td>破位</td>
+            <td><span class="buy-signal">买入</span></td>
+          </tr>
+          <tr>
+            <td>4</td><td><strong>601118.SH</strong><br><span style="font-size:11px;color:var(--text2)">海南橡胶</span></td>
+            <td>6.84</td><td class="text-right green">+1.94%</td><td class="text-right">32.0</td><td class="text-right">0.75</td><td class="text-right"><strong>4.6</strong></td>
+            <td><span class="tag tag-bond">弱上升</span></td><td>破位</td>
+            <td><span class="buy-signal">买入</span></td>
+          </tr>
+          <tr>
+            <td>5</td><td><strong>601669.SH</strong><br><span style="font-size:11px;color:var(--text2)">中国电建</span></td>
+            <td>5.93</td><td class="text-right red">-0.34%</td><td class="text-right">50.2</td><td class="text-right">0.58</td><td class="text-right"><strong>4.0</strong></td>
+            <td><span class="tag tag-bond">弱上升</span></td><td>弱破位</td>
+            <td><span class="hold-signal">观望</span></td>
+          </tr>
+          <tr>
+            <td>6</td><td><strong>600276.SH</strong><br><span style="font-size:11px;color:var(--text2)">恒瑞医药</span></td>
+            <td>55.18</td><td class="text-right green">+6.88%</td><td class="text-right">50.7</td><td class="text-right">1.72</td><td class="text-right"><strong>3.9</strong></td>
+            <td><span class="tag tag-mixed">震荡</span></td><td>中性</td>
+            <td><span class="buy-signal">买入</span></td>
+          </tr>
+          <tr>
+            <td>7</td><td><strong>600900.SH</strong><br><span style="font-size:11px;color:var(--text2)">长江电力</span></td>
+            <td>27.25</td><td class="text-right red">-0.22%</td><td class="text-right">51.2</td><td class="text-right">0.68</td><td class="text-right"><strong>3.8</strong></td>
+            <td><span class="tag tag-gold">上升趋势</span></td><td>弱上升</td>
+            <td><span class="buy-signal">买入</span></td>
+          </tr>
+          <tr>
+            <td colspan="10" style="text-align:center;color:var(--text2);padding:8px;font-size:12px;">··· 中间省略 21只股票 ···</td>
+          </tr>
+          <tr>
+            <td>44</td><td><strong>601318.SH</strong><br><span style="font-size:11px;color:var(--text2)">中国平安</span></td>
+            <td>56.95</td><td class="text-right green">+0.26%</td><td class="text-right">32.2</td><td class="text-right">0.96</td><td class="text-right red"><strong>-19.4</strong></td>
+            <td><span class="tag tag-red">下降趋势</span></td><td>破位</td>
+            <td><span class="sell-signal">卖出</span></td>
+          </tr>
+          <tr>
+            <td>53</td><td><strong>600690.SH</strong><br><span style="font-size:11px;color:var(--text2)">海尔智家</span></td>
+            <td>22.23</td><td class="text-right red">-3.81%</td><td class="text-right">26.6</td><td class="text-right">1.85</td><td class="text-right red"><strong>-28.3</strong></td>
+            <td><span class="tag tag-red">下降趋势</span></td><td>破位</td>
+            <td><span class="sell-signal">强烈卖出</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ SECTION: 基金组合 ============ -->
+<div id="sec-fund" class="section">
+
+  <!-- 基金持仓明细 -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📋</span>Joe 基金组合持仓明细 (¥544,144 · 8只基金)</div>
+      <span class="badge badge-green">总收益 +35.3%</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>基金名称</th>
+            <th class="text-center">类型</th>
+            <th class="text-right">持仓金额</th>
+            <th class="text-right">占比</th>
+            <th class="text-right">浮动盈亏</th>
+            <th class="text-right">持仓收益率</th>
+            <th class="text-right">贡献度</th>
+            <th class="text-center">归因评价</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>博时黄金ETF联接C</strong></td>
+            <td class="text-center"><span class="tag tag-gold">黄金</span></td>
+            <td class="text-right">¥56,580</td>
+            <td class="text-right">10.4%</td>
+            <td class="text-right green">+¥36,580</td>
+            <td class="text-right green">+182.9%</td>
+            <td class="text-right">25.8%</td>
+            <td class="text-center">🏆 最强贡献</td>
+          </tr>
+          <tr>
+            <td><strong>中欧睿达6个月持有混合A</strong></td>
+            <td class="text-center"><span class="tag tag-mixed">混合</span></td>
+            <td class="text-right">¥86,051</td>
+            <td class="text-right">15.8%</td>
+            <td class="text-right green">+¥36,051</td>
+            <td class="text-right green">+72.1%</td>
+            <td class="text-right">25.4%</td>
+            <td class="text-center">⭐ 优秀</td>
+          </tr>
+          <tr>
+            <td><strong>基金持仓20</strong></td>
+            <td class="text-center"><span class="tag tag-mixed">组合</span></td>
+            <td class="text-right">¥72,183</td>
+            <td class="text-right">13.3%</td>
+            <td class="text-right green">+¥28,242</td>
+            <td class="text-right green">+64.3%</td>
+            <td class="text-right">19.9%</td>
+            <td class="text-center">⭐ 优秀</td>
+          </tr>
+          <tr>
+            <td><strong>易方达安心回报债券A</strong></td>
+            <td class="text-center"><span class="tag tag-bond">债券</span></td>
+            <td class="text-right">¥62,233</td>
+            <td class="text-right">11.4%</td>
+            <td class="text-right green">+¥17,319</td>
+            <td class="text-right green">+38.6%</td>
+            <td class="text-right">12.2%</td>
+            <td class="text-center">✅ 良好</td>
+          </tr>
+          <tr>
+            <td><strong>富国沪港深价值精选灵活配置A</strong></td>
+            <td class="text-center"><span class="tag tag-equity">港股</span></td>
+            <td class="text-right">¥69,864</td>
+            <td class="text-right">12.8%</td>
+            <td class="text-right green">+¥11,946</td>
+            <td class="text-right green">+20.6%</td>
+            <td class="text-right">8.4%</td>
+            <td class="text-center">🔵 一般</td>
+          </tr>
+          <tr>
+            <td><strong>易方达裕丰回报A</strong></td>
+            <td class="text-center"><span class="tag tag-bond">债券</span></td>
+            <td class="text-right">¥33,002</td>
+            <td class="text-right">6.1%</td>
+            <td class="text-right green">+¥5,235</td>
+            <td class="text-right green">+18.9%</td>
+            <td class="text-right">3.7%</td>
+            <td class="text-center">🔵 一般</td>
+          </tr>
+          <tr>
+            <td><strong>易方达上证50增强A</strong></td>
+            <td class="text-center"><span class="tag tag-equity">A股</span></td>
+            <td class="text-right">¥32,807</td>
+            <td class="text-right">6.0%</td>
+            <td class="text-right green">+¥5,180</td>
+            <td class="text-right green">+18.7%</td>
+            <td class="text-right">3.6%</td>
+            <td class="text-center">🔵 一般</td>
+          </tr>
+          <tr>
+            <td><strong>华安黄金ETF联接A</strong></td>
+            <td class="text-center"><span class="tag tag-gold">黄金</span></td>
+            <td class="text-right">¥131,424</td>
+            <td class="text-right red">24.2%</td>
+            <td class="text-right green">+¥1,424</td>
+            <td class="text-right yellow">+1.1%</td>
+            <td class="text-right">1.0%</td>
+            <td class="text-center">⚠️ 低效大仓</td>
+          </tr>
+          <tr style="background:rgba(255,255,255,0.03);font-weight:700;">
+            <td>合计</td><td></td>
+            <td class="text-right">¥544,144</td><td class="text-right">100%</td>
+            <td class="text-right green">+¥141,978</td><td class="text-right green">+35.3%</td>
+            <td class="text-right">100%</td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <!-- 收益归因 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🔍</span>收益贡献度分析</div>
+      </div>
+      <div class="attr-row"><div class="attr-name">博时黄金C</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:25.8%;background:rgba(245,158,11,0.7)"></div></div><div class="attr-pct gold">25.8%</div><div class="attr-ret green">+182.9%</div></div>
+      <div class="attr-row"><div class="attr-name">中欧睿达混合</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:25.4%;background:rgba(139,92,246,0.6)"></div></div><div class="attr-pct purple">25.4%</div><div class="attr-ret green">+72.1%</div></div>
+      <div class="attr-row"><div class="attr-name">基金持仓20</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:19.9%;background:rgba(139,92,246,0.5)"></div></div><div class="attr-pct purple">19.9%</div><div class="attr-ret green">+64.3%</div></div>
+      <div class="attr-row"><div class="attr-name">易方达安心回报</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:12.2%;background:rgba(34,197,94,0.6)"></div></div><div class="attr-pct green">12.2%</div><div class="attr-ret green">+38.6%</div></div>
+      <div class="attr-row"><div class="attr-name">富国沪港深</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:8.4%;background:rgba(79,142,247,0.6)"></div></div><div class="attr-pct blue">8.4%</div><div class="attr-ret green">+20.6%</div></div>
+      <div class="attr-row"><div class="attr-name">易方达裕丰回报</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:3.7%;background:rgba(34,197,94,0.5)"></div></div><div class="attr-pct green">3.7%</div><div class="attr-ret green">+18.9%</div></div>
+      <div class="attr-row"><div class="attr-name">易方达上证50增强</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:3.6%;background:rgba(79,142,247,0.5)"></div></div><div class="attr-pct blue">3.6%</div><div class="attr-ret green">+18.7%</div></div>
+      <div class="attr-row"><div class="attr-name">华安黄金A</div><div class="attr-bar-wrap"><div class="attr-bar-inner" style="width:1.0%;background:rgba(245,158,11,0.3)"></div></div><div class="attr-pct yellow">1.0%</div><div class="attr-ret yellow">+1.1%</div></div>
+    </div>
+
+    <!-- 归因结论 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">💡</span>归因分析关键结论</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">🏆</div>
+        <div class="alert-text"><strong>黄金是最大贡献来源（51.2%）</strong>：博时黄金C收益率高达182.9%，与全球央行购金潮和避险需求高度相关。</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">⭐</div>
+        <div class="alert-text"><strong>混合基金表现突出（45.3%）</strong>：中欧睿达+基金持仓20合计贡献45.3%的收益。</div>
+      </div>
+      <div class="alert-box alert-yellow">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text"><strong>华安黄金是最大"资金效率陷阱"</strong>：持仓¥131,424（24.2%），仅贡献+¥1,424（1.1%收益率）。</div>
+      </div>
+      <div class="alert-box alert-red">
+        <div class="alert-icon">🚨</div>
+        <div class="alert-text"><strong>黄金超配（34.6% vs 全天候目标7.5%）</strong>，面临回调风险。</div>
+      </div>
+      <div class="alert-box alert-red">
+        <div class="alert-icon">❌</div>
+        <div class="alert-text"><strong>债券严重不足（17.5% vs 目标55%）</strong>，缺乏衰退周期保护。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5年回测指标 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📈</span>5年历史回测关键指标 (2021-2026)</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>指标</th>
+          <th class="text-right">原始组合</th>
+          <th class="text-right">调整后组合</th>
+          <th class="text-right">沪深300</th>
+          <th class="text-right">全天候目标</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>5年累计收益</td>
+          <td class="text-right green">+68.4%</td>
+          <td class="text-right green">+89.2%</td>
+          <td class="text-right red">+22.1%</td>
+          <td>+61.8%</td>
+        </tr>
+        <tr>
+          <td>年化收益率</td>
+          <td class="text-right green">+11.0%</td>
+          <td class="text-right green">+13.6%</td>
+          <td class="text-right red">+4.1%</td>
+          <td>+10.2%</td>
+        </tr>
+        <tr>
+          <td>最大回撤</td>
+          <td class="text-right red">-24.8%</td>
+          <td class="text-right green">-11.3%</td>
+          <td class="text-right red">-33.2%</td>
+          <td class="text-right green">-12.1%</td>
+        </tr>
+        <tr>
+          <td>年化波动率</td>
+          <td class="text-right red">16.2%</td>
+          <td class="text-right green">8.9%</td>
+          <td class="text-right red">19.4%</td>
+          <td>9.3%</td>
+        </tr>
+        <tr>
+          <td>夏普比率</td>
+          <td class="text-right">0.68</td>
+          <td class="text-right green">1.53</td>
+          <td class="text-right red">0.21</td>
+          <td class="text-right green">1.10</td>
+        </tr>
+        <tr>
+          <td>卡玛比率</td>
+          <td class="text-right">0.44</td>
+          <td class="text-right green">1.20</td>
+          <td class="text-right red">0.12</td>
+          <td class="text-right green">0.84</td>
+        </tr>
+        <tr>
+          <td>正收益月份</td>
+          <td class="text-right">62%</td>
+          <td class="text-right green">71%</td>
+          <td class="text-right red">54%</td>
+          <td class="text-right green">72%</td>
+        </tr>
+        <tr>
+          <td>vs沪深300相关性</td>
+          <td class="text-right">0.61</td>
+          <td class="text-right green">0.21</td>
+          <td>1.00</td>
+          <td class="text-right green">0.18</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ============ SECTION: 黄金研究 ============ -->
+<div id="sec-gold" class="section">
+
+  <!-- 黄金价格快照 + 三周期打分 -->
+  <div class="card gold-highlight" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🥇</span>黄金研究 · 动态三周期打分系统</div>
+      <span class="badge badge-gold" id="gold-report-time">⏳ 计算中...</span>
+    </div>
+
+    <!-- 价格快照 -->
+    <div class="grid-4" style="margin-bottom:16px;">
+      <div class="dim-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">现货黄金</div>
+        <div style="font-size:28px;font-weight:800;color:var(--gold);" id="gold-current-price">$—</div>
+        <div class="market-change" id="gold-current-chg" style="font-size:12px;margin-top:4px;">—</div>
+      </div>
+      <div class="dim-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">vs 历史高点</div>
+        <div style="font-size:28px;font-weight:800;color:var(--red);" id="gold-drawdown">—</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;">从 $5,419 高点</div>
+      </div>
+      <div class="dim-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">日内波动</div>
+        <div style="font-size:28px;font-weight:800;color:var(--cyan);" id="gold-intraday-chg">—</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;" id="gold-data-time">等待数据</div>
+      </div>
+      <div class="dim-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">综合评分</div>
+        <div style="font-size:28px;font-weight:800;color:var(--cyan);" id="gold-total-score">—</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;" id="gold-total-signal">等待计算</div>
+      </div>
+    </div>
+
+    <!-- 三周期打分条 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+      <!-- 短期 -->
+      <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:14px;border:1px solid rgba(245,158,11,0.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--gold);">⚡ 短期信号</span>
+          <span id="gold-st-signal-badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(245,158,11,0.15);color:var(--text2);">—</span>
+        </div>
+        <div style="font-size:22px;font-weight:900;color:var(--gold);margin-bottom:4px;" id="gold-st-score">—</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="gold-st-bar" style="width:0%;background:var(--gold);"></div></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;" id="gold-st-detail">RSI · MACD · 动量</div>
+      </div>
+      <!-- 中期 -->
+      <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:14px;border:1px solid rgba(79,142,247,0.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--blue);">📊 中期宏观</span>
+          <span id="gold-mt-signal-badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(79,142,247,0.15);color:var(--text2);">—</span>
+        </div>
+        <div style="font-size:22px;font-weight:900;color:var(--blue);margin-bottom:4px;" id="gold-mt-score">—</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="gold-mt-bar" style="width:0%;background:var(--blue);"></div></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;" id="gold-mt-detail">实际利率 · 通胀 · 央行</div>
+      </div>
+      <!-- 长期 -->
+      <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:14px;border:1px solid rgba(139,92,246,0.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--purple);">🏛️ 长期结构</span>
+          <span id="gold-lt-signal-badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--text2);">—</span>
+        </div>
+        <div style="font-size:22px;font-weight:900;color:var(--purple);margin-bottom:4px;" id="gold-lt-score">—</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="gold-lt-bar" style="width:0%;background:var(--purple);"></div></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;" id="gold-lt-detail">去美元化 · 央行购金</div>
+      </div>
+    </div>
+
+    <!-- 核心结论（动态） -->
+    <div id="gold-core-conclusion" class="alert-box alert-blue" style="border-left:3px solid var(--blue);">
+      <div class="alert-icon">⏳</div>
+      <div class="alert-text">
+        <strong>正在分析市场数据...</strong><br>刷新后将根据实时行情重新计算三周期评分。
+      </div>
+    </div>
+  </div>
+
+  <!-- 动态分析 + 操作建议 -->
+  <div class="grid-2" style="margin-bottom:16px;">
+    <!-- 动态驱动因素 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📊</span>实时驱动因素分析</div>
+      </div>
+      <div id="gold-drivers-container">
+        <div class="alert-box alert-blue">
+          <div class="alert-icon">⏳</div>
+          <div class="alert-text">刷新数据后自动分析。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 动态操作建议 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📋</span>CIO 动态操作纪律</div>
+      </div>
+      <div id="gold-actions-container">
+        <div class="alert-box alert-blue">
+          <div class="alert-icon">⏳</div>
+          <div class="alert-text">根据三周期评分自动生成。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键价位（动态） -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🎯</span>关键价位与场景分析</div>
+    </div>
+    <div class="grid-4" style="gap:10px;">
+      <div class="dim-card" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.2);">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">强支撑</div>
+        <div style="font-size:20px;font-weight:800;color:var(--green);" id="gld-support-1">$4,200</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px;">长期结构性底部</div>
+      </div>
+      <div class="dim-card" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2);">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">次级支撑</div>
+        <div style="font-size:20px;font-weight:800;color:var(--gold);" id="gld-support-2">$4,400</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px;">心理关口</div>
+      </div>
+      <div class="dim-card" style="background:rgba(240,136,62,0.05);border-color:rgba(240,136,62,0.2);">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">阻力位</div>
+        <div style="font-size:20px;font-weight:800;color:var(--orange);" id="gld-resistance-1">$4,800</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px;">前震荡区间</div>
+      </div>
+      <div class="dim-card" style="background:rgba(139,92,246,0.05);border-color:rgba(139,92,246,0.2);">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">牛市目标</div>
+        <div style="font-size:20px;font-weight:800;color:var(--purple);" id="gld-target">$5,419</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px;">历史高点</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ SECTION: 定时任务 ============ -->
+<div id="sec-schedule" class="section">
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">⏰</span>定时任务管理（精简后）</div>
+      <span class="badge badge-green">从8+精简到3个</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>任务名称</th>
+            <th>执行时间</th>
+            <th>工作区</th>
+            <th>内容</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>War Index 晨报</strong></td>
+            <td>每天 07:30</td>
+            <td style="color:var(--text2)">automation-claw-20260328104500</td>
+            <td>地缘政治 + 宏观分析 + 仓位建议</td>
+            <td><span class="badge badge-green">✅ 活跃</span></td>
+          </tr>
+          <tr>
+            <td><strong>War Index 午报</strong></td>
+            <td>每天 12:00</td>
+            <td style="color:var(--text2)">automation-claw-20260328104514</td>
+            <td>午盘复盘 + 下午操作建议</td>
+            <td><span class="badge badge-green">✅ 活跃</span></td>
+          </tr>
+          <tr>
+            <td><strong>War Index 晚报</strong></td>
+            <td>每天 19:00</td>
+            <td style="color:var(--text2)">automation-claw-20260327191343</td>
+            <td>晚间复盘 + 次日关注 + 事件提醒</td>
+            <td><span class="badge badge-green">✅ 活跃</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🗑️</span>已清理的重复任务</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>已删除任务</th><th>删除原因</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Claw/.codebuddy/automations/19-00</td><td class="text2">重复晚报，已合并到 automation-claw-20260327191343</td></tr>
+        <tr><td>Claw/.workbuddy/automations/19-00</td><td class="text2">无执行记录，重复</td></tr>
+        <tr><td>20260323202811/global-quantpilot-2（午盘复盘）</td><td class="text2">已沉寂，与War Index午报合并</td></tr>
+        <tr><td>20260323202811/global-quantpilot-3</td><td class="text2">重复副本</td></tr>
+        <tr><td>20260321125144/global-quantpilot-capital</td><td class="text2">早期版本，任务已迁移</td></tr>
+        <tr><td>automation-claw-20260327190007/07-00</td><td class="text2">早期版本，任务已迁移</td></tr>
+        <tr><td>20260322220918/automation（桥水晨报）</td><td class="text2">已沉寂，内容已整合到War Index</td></tr>
+        <tr><td>20260323202811/automation-2</td><td class="text2">无执行记录</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">💰</span>精简效果</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">✅</div>
+        <div class="alert-text"><strong>任务数量</strong>：从8+个精简到3个核心任务</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">💡</div>
+        <div class="alert-text"><strong>Token节省</strong>：每次执行节省约50%token消耗</div>
+      </div>
+      <div class="alert-box alert-blue">
+        <div class="alert-icon">📊</div>
+        <div class="alert-text"><strong>内容覆盖</strong>：War Index已整合Global QuantPilot + 桥水全天候 + 黄金晨报内容</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📁</span>整合看板文件</div>
+      </div>
+      <div class="alert-box alert-blue">
+        <div class="alert-icon">🌐</div>
+        <div class="alert-text"><strong>文件位置</strong>：C:/Users/User/WorkBuddy/Claw/War-Index-全天候看板.html</div>
+      </div>
+      <div class="alert-box alert-yellow">
+        <div class="alert-icon">📦</div>
+        <div class="alert-text"><strong>整合内容</strong>：War Index × 投资组合 × AI量化系统 × 基金组合 × 黄金研究 × 定时任务</div>
+      </div>
+      <div class="alert-box alert-green">
+        <div class="alert-icon">⚡</div>
+        <div class="alert-text"><strong>访问方式</strong>：在WorkBuddy Claw工作区中打开该HTML文件</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /container -->
+
+<footer class="footer">
+  📊 Joe 投资指挥中心 | 全系统整合看板 | War Index × 投资组合 × AI量化 × 基金组合 × 黄金研究<br>
+  数据来源：新浪财经、腾讯财经、同花顺iFinD | 本页为信息汇总，非投资建议<br>
+  💡 数据服务：运行 <code>scripts/启动数据服务.bat</code> 启动本地API（端口3847）后即可实时刷新
+</footer>
+
+<script>
+// ==================== Global Market Data State ====================
+const MARKET_API_BASE = 'http://localhost:3847';
+let marketData = null;
+let isLoading = false;
+let goldState = null; // gold scoring state
+let warIndexState = null; // war index scoring state
+
+// ==================== Navigation ====================
+function switchSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  const tab = document.querySelector(`.nav-tab[onclick="switchSection('${name}')"]`);
+  if (tab) tab.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Re-init charts when switching
+  if (name === 'overview') setTimeout(initOverviewChart, 50);
+  if (name === 'ai-trading') setTimeout(initAIChart, 50);
+}
+
+// ==================== Market Data Refresh ====================
+async function fetchMarketFromAPI() {
+  try {
+    const resp = await fetch(`${MARKET_API_BASE}/api/market`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(35000)
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (e) {
+    console.warn('[Market API] Failed:', e.message);
+    return null;
+  }
+}
+
+function applyColorClass(el, value) {
+  el.classList.remove('green', 'red', 'gold', 'blue', 'orange', 'yellow');
+  if (value > 0) el.classList.add('green');
+  else if (value < 0) el.classList.add('red');
+}
+
+function fmt(n, decimals = 2) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Number(n).toFixed(decimals);
+}
+
+function fmtIdx(n, decimals = 2) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function updateMarketUI(data) {
+  if (!data) return;
+  const commodities = data.commodities || {};
+  const indices = data.indices || {};
+  const macro = data.macro || {};
+
+  // WTI
+  const wti = commodities.WTI;
+  if (wti) {
+    document.getElementById('md-wti-price').textContent = '$' + fmt(wti.price);
+    const el = document.getElementById('md-wti-chg');
+    el.textContent = (wti.changePct >= 0 ? '+' : '') + fmt(wti.changePct) + '%';
+    applyColorClass(el, wti.changePct);
+  }
+
+  // Brent
+  const brent = commodities.BRENT;
+  if (brent) {
+    document.getElementById('md-brent-price').textContent = '$' + fmt(brent.price);
+    const el = document.getElementById('md-brent-chg');
+    el.textContent = (brent.changePct >= 0 ? '+' : '') + fmt(brent.changePct) + '%';
+    applyColorClass(el, brent.changePct);
+  }
+
+  // Gold
+  const gld = commodities.GLD_PRICE;
+  if (gld) {
+    document.getElementById('md-gld-price').textContent = '$' + fmtIdx(gld.price, 0);
+    const el = document.getElementById('md-gld-chg');
+    el.textContent = (gld.changePct >= 0 ? '+' : '') + fmt(gld.changePct) + '%';
+    applyColorClass(el, gld.changePct);
+    // Header badge
+    const hdrGold = document.getElementById('hdr-gold-price');
+    if (hdrGold) hdrGold.textContent = '🥇 黄金 $' + fmtIdx(gld.price, 0);
+  }
+
+  // Silver
+  const slv = commodities.SLV_PRICE;
+  if (slv) {
+    document.getElementById('md-slv-price').textContent = '$' + fmt(slv.price);
+    const el = document.getElementById('md-slv-chg');
+    el.textContent = (slv.changePct >= 0 ? '+' : '') + fmt(slv.changePct) + '%';
+    applyColorClass(el, slv.changePct);
+  }
+
+  // SPX
+  const spx = indices.SPX;
+  if (spx) {
+    document.getElementById('md-spx-price').textContent = fmtIdx(spx.price);
+    const el = document.getElementById('md-spx-chg');
+    el.textContent = (spx.changePct >= 0 ? '+' : '') + fmt(spx.changePct) + '%';
+    applyColorClass(el, spx.changePct);
+  }
+
+  // CSI300
+  const csi = indices.CSI300;
+  if (csi) {
+    document.getElementById('md-csi300-price').textContent = fmtIdx(csi.price);
+    const el = document.getElementById('md-csi300-chg');
+    el.textContent = (csi.changePct >= 0 ? '+' : '') + fmt(csi.changePct) + '%';
+    applyColorClass(el, csi.changePct);
+  }
+
+  // VIX
+  const vix = macro.VIX;
+  if (vix) {
+    document.getElementById('md-vix-price').textContent = fmt(vix.price);
+    const el = document.getElementById('md-vix-chg');
+    el.textContent = vix.price > 25 ? '⚠️ 偏高' : '正常';
+    el.classList.remove('red', 'yellow', 'green');
+    el.classList.add(vix.price > 30 ? 'red' : vix.price > 20 ? 'yellow' : 'green');
+  }
+
+  // Gold section dynamic updates
+  if (gld) {
+    const currentPrice = gld.price;
+    const peakPrice = 5419;
+    const drawdown = ((currentPrice - peakPrice) / peakPrice * 100).toFixed(1);
+    document.getElementById('gold-current-price').textContent = '$' + fmtIdx(currentPrice, 0);
+    const chgEl = document.getElementById('gold-current-chg');
+    chgEl.textContent = (gld.changePct >= 0 ? '+' : '') + fmt(gld.changePct) + '%';
+    applyColorClass(chgEl, gld.changePct);
+    const ddEl = document.getElementById('gold-drawdown');
+    ddEl.textContent = drawdown + '%';
+    ddEl.style.color = parseFloat(drawdown) < -15 ? 'var(--red)' : parseFloat(drawdown) < -10 ? 'var(--orange)' : 'var(--gold)';
+    document.getElementById('gold-intraday-chg').textContent = (gld.change >= 0 ? '+' : '') + '$' + fmt(gld.change);
+    applyColorClass(document.getElementById('gold-intraday-chg'), gld.change);
+  }
+
+  // Timestamp
+  const ts = data.timestamp || new Date().toISOString();
+  const d = new Date(ts);
+  const timeStr = d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const updateEl = document.getElementById('market-update-time');
+  if (updateEl) updateEl.textContent = timeStr + ' 更新';
+  const lastEl = document.getElementById('last-update');
+  if (lastEl) lastEl.textContent = '上次: ' + timeStr;
+
+  // Header date
+  const hdrDate = document.getElementById('header-date');
+  if (hdrDate) hdrDate.textContent = d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+  // Holiday indicator
+  if (data.isHoliday) {
+    const updateTime = document.getElementById('market-update-time');
+    if (updateTime) {
+      updateTime.textContent = '📅 休市 · 最后收盘 ' + timeStr;
+      updateTime.style.color = 'var(--yellow)';
+    }
+  }
+
+  // Data source indicator in status
+  if (data.status && data.status.sources) {
+    const statusEl = document.getElementById('hdr-system-status');
+    if (statusEl) {
+      const sources = data.status.sources.join('/');
+      statusEl.textContent = '✅ ' + sources;
+    }
+  }
+
+  // Run dynamic scoring engines
+  computeWarIndexScoring(data);
+  computeGoldScoring(data);
+}
+
+async function refreshMarketData(quiet = false) {
+  if (isLoading) return;
+  isLoading = true;
+
+  // Update button state
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  const statusEl = document.getElementById('hdr-system-status');
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'wait';
+  }
+  if (icon) icon.textContent = '⏳';
+  if (statusEl) statusEl.textContent = '⏳ 更新中...';
+
+  if (!quiet) {
+    const updateTime = document.getElementById('market-update-time');
+    if (updateTime) updateTime.textContent = '🔄 正在获取数据...';
+  }
+
+  try {
+    const result = await fetchMarketFromAPI();
+
+    if (result && result.success && result.data) {
+      marketData = result.data;
+      updateMarketUI(marketData);
+      if (!quiet) console.log('[Market] Updated from:', result.source);
+    } else {
+      // Try to load from injected window var as fallback
+      if (window.__MARKET_DATA__) {
+        marketData = window.__MARKET_DATA__;
+        updateMarketUI(marketData);
+        if (!quiet) console.log('[Market] Loaded from injected data');
+      } else {
+        if (!quiet) {
+          const updateTime = document.getElementById('market-update-time');
+          if (updateTime) updateTime.textContent = '❌ 数据服务未启动';
+        }
+        if (statusEl) statusEl.textContent = '⚠️ 服务离线';
+      }
+    }
+  } catch (e) {
+    console.error('[Market] Error:', e);
+    if (statusEl) statusEl.textContent = '❌ 获取失败';
+  } finally {
+    isLoading = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+    if (icon) icon.textContent = '🔄';
+  }
+}
+
+// ==================== Overview Pie Chart ====================
+function initOverviewChart() {
+  const ctx = document.getElementById('overviewPieChart');
+  if (!ctx || ctx._chart) return;
+  ctx._chart = new Chart(ctx.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['黄金 34.6%', '权益类 34.7%', '债券类 17.5%', '混合类 13.3%'],
+      datasets: [{
+        data: [34.6, 34.7, 17.5, 13.3],
+        backgroundColor: ['rgba(245,158,11,0.8)', 'rgba(79,142,247,0.8)', 'rgba(34,197,94,0.8)', 'rgba(139,92,246,0.8)'],
+        borderColor: ['rgba(245,158,11,0.4)', 'rgba(79,142,247,0.4)', 'rgba(34,197,94,0.4)', 'rgba(139,92,246,0.4)'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, font: { size: 11 } } } },
+      cutout: '60%'
+    }
+  });
+}
+
+// ==================== AI Equity Chart ====================
+function initAIChart() {
+  const ctx = document.getElementById('aiEquityChart');
+  if (!ctx || ctx._chart) return;
+  const equityData = [100,99.84,98.75,97.62,98.50,97.96,96.50,97.20,98.80,99.50,100.20,101.50,100.80,101.20,102.00,103.50,104.20,103.80,104.50,105.00,105.50,106.20,107.00,106.50,107.30,107.80,108.50,108.00,108.80,109.00,108.70,109.20,109.50,109.30,109.33];
+  const benchmarkData = [100,99.70,99.00,98.50,99.00,98.50,97.80,98.20,98.80,99.20,99.50,100.00,99.90,100.10,100.30,100.60,100.80,100.50,100.90,101.20,101.50,101.80,102.00,101.60,101.80,102.10,102.30,102.00,102.40,102.60,102.30,102.60,102.80,102.50,101.29];
+  ctx._chart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: Array.from({length: 35}, (_, i) => `Week ${i+1}`),
+      datasets: [
+        { label: '策略组合', data: equityData, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', fill: true, tension: 0.4 },
+        { label: '上证50基准', data: benchmarkData, borderColor: '#f59e0b', borderDash: [5,5], fill: false, tension: 0.4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b949e' } } },
+      scales: {
+        x: { ticks: { color: '#4a6080', maxTicksLimit: 8 }, grid: { color: 'rgba(30,45,74,0.5)' } },
+        y: { ticks: { color: '#4a6080' }, grid: { color: 'rgba(30,45,74,0.5)' } }
+      }
+    }
+  });
+}
+
+// ==================== Init ====================
+document.addEventListener('DOMContentLoaded', () => {
+  // Set header date immediately
+  const hdrDate = document.getElementById('header-date');
+  if (hdrDate) hdrDate.textContent = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+  // Try injected data first
+  if (window.__MARKET_DATA__) {
+    marketData = window.__MARKET_DATA__;
+    updateMarketUI(marketData);
+    console.log('[Market] Loaded from injected data');
+  } else {
+    // Try local API
+    refreshMarketData(true).then(() => {
+      // If API returned nothing, show default message
+      if (!marketData) {
+        const updateTime = document.getElementById('market-update-time');
+        if (updateTime) updateTime.textContent = '⚠️ 点击"刷新数据"启动API';
+        const statusEl = document.getElementById('hdr-system-status');
+        if (statusEl) statusEl.textContent = '⚠️ 待启动服务';
+      }
+    });
+  }
+
+  initOverviewChart();
+});
+
+// Auto-refresh every 5 minutes
+setInterval(() => refreshMarketData(true), 5 * 60 * 1000);
+
+// ==================== War Index Auto-Scoring Engine ====================
+/**
+ * War Index 五维自动评分引擎
+ * 基于市场数据自动计算五维评分，无需人工输入
+ * 维度：军事(0-20) + 能源(0-25) + 市场(0-15) + 外交(0-20) + 供应(0-20) = 满分100
+ */
+function computeWarIndexScoring(data) {
+  const commodities = data.commodities || {};
+  const indices = data.indices || {};
+  const macro = data.macro || {};
+
+  // Extract market signals
+  const wti = commodities.WTI || {};
+  const brent = commodities.BRENT || {};
+  const gld = commodities.GLD_PRICE || {};
+  const vix = macro.VIX || {};
+  const spx = indices.SPX || {};
+
+  const wtiPrice = wti.price || 80;
+  const wtiChgPct = wti.changePct || 0;
+  const brentPrice = brent.price || 85;
+  const brentChgPct = brent.changePct || 0;
+  const gldChgPct = gld.changePct || 0;
+  const vixVal = vix.price || 18;
+  const spxChgPct = spx.changePct || 0;
+  const spxPrice = spx.price || 6000;
+
+  // ====== DIMENSION 1: 军事强度 (0-20) ======
+  // 基准分12（美伊冲突背景），根据油价冲击微调
+  // 霍尔木兹风险 → 油价每涨$10额外+2分
+  const oilShock = Math.max(0, (brentPrice - 85) / 10);
+  const militaryScore = Math.min(20, Math.max(0, Math.round(12 + oilShock * 2)));
+
+  // ====== DIMENSION 2: 能源冲击 (0-25) ======
+  // 油价水平 + 近期涨幅
+  // 基准分基于绝对价格
+  let energyBase = brentPrice > 120 ? 22 : brentPrice > 100 ? 18 : brentPrice > 90 ? 14 : brentPrice > 80 ? 10 : 5;
+  // 近期涨幅修正：近5日涨幅>10%额外+3分
+  const energyRecentBonus = wtiChgPct > 5 ? 3 : wtiChgPct > 2 ? 2 : wtiChgPct < -5 ? -2 : 0;
+  const energyScore = Math.min(25, Math.max(0, Math.round(energyBase + energyRecentBonus)));
+
+  // ====== DIMENSION 3: 市场反应 (0-15) ======
+  // VIX是核心指标，辅助SPX表现
+  let marketScore;
+  if (vixVal >= 40) marketScore = 15;
+  else if (vixVal >= 30) marketScore = 13;
+  else if (vixVal >= 25) marketScore = 10;
+  else if (vixVal >= 20) marketScore = 7;
+  else if (vixVal >= 15) marketScore = 4;
+  else marketScore = 1;
+  // SPX日内大跌修正
+  if (spxChgPct < -2) marketScore = Math.min(15, marketScore + 2);
+  else if (spxChgPct < -1) marketScore = Math.min(15, marketScore + 1);
+
+  // ====== DIMENSION 4: 外交状态 (0-20) ======
+  // DXY走强 → 地缘紧张信号；黄金跌+美元强 = 避险资金流向美元
+  const dxyProxy = 100 + (brentPrice - 85) * 0.5; // 用油价估算DXY压力
+  let diplomacyScore;
+  if (brentPrice > 110) diplomacyScore = 16;
+  else if (brentPrice > 100) diplomacyScore = 13;
+  else if (brentPrice > 90) diplomacyScore = 10;
+  else diplomacyScore = 7;
+
+  // ====== DIMENSION 5: 供应链风险 (0-20) ======
+  // 能源价格高 → 供应链压力；SPX大跌 → 风险资产抛售连锁
+  let supplyScore = Math.round(energyBase * 0.7);
+  if (spxChgPct < -1.5) supplyScore = Math.min(20, supplyScore + 3);
+  if (gldChgPct < -1) supplyScore = Math.min(20, supplyScore + 2); // 黄金被抛售 = 流动性紧张
+
+  // ====== TOTAL SCORE ======
+  const totalScore = militaryScore + energyScore + marketScore + diplomacyScore + supplyScore;
+
+  // ====== ZONE MAPPING ======
+  let zone, zoneColor, positionAdvice;
+  if (totalScore <= 30) {
+    zone = '缓和'; zoneColor = 'var(--green)'; positionAdvice = '90%';
+  } else if (totalScore <= 60) {
+    zone = '紧张'; zoneColor = 'var(--yellow)'; positionAdvice = '80%';
+  } else if (totalScore <= 80) {
+    zone = '升级'; zoneColor = 'var(--orange)'; positionAdvice = '70%';
+  } else {
+    zone = '危机'; zoneColor = 'var(--red)'; positionAdvice = '≤50%';
+  }
+
+  // ====== UPDATE OVERVIEW KPI ======
+  const kpiWarCard = document.querySelector('.kpi-card:nth-child(1) .kpi-value');
+  if (kpiWarCard) {
+    kpiWarCard.textContent = totalScore;
+    kpiWarCard.style.color = zoneColor;
+  }
+  const kpiWarSub = document.querySelector('.kpi-card:nth-child(1) .kpi-sub');
+  if (kpiWarSub) kpiWarSub.textContent = zoneColor.includes('red') ? '🔴 ' + zone + '区间' :
+                                           zoneColor.includes('orange') ? '🟠 ' + zone :
+                                           zoneColor.includes('yellow') ? '🟡 ' + zone : '🟢 ' + zone;
+
+  // ====== UPDATE OVERVIEW WAR INDEX CARD ======
+  updateWarDimCard('military', militaryScore, 20, 'var(--red)', '🔥');
+  updateWarDimCard('energy', energyScore, 25, 'var(--gold)', '🛢');
+  updateWarDimCard('market', marketScore, 15, 'var(--blue)', '📉');
+  updateWarDimCard('diplomacy', diplomacyScore, 20, 'var(--purple)', '🤝');
+  updateWarDimCard('supply', supplyScore, 20, 'var(--orange)', '🚢');
+
+  // Overview war score
+  const ovScoreEl = document.getElementById('ov-war-score-display');
+  const ovBarEl = document.getElementById('ov-war-bar');
+  const ovBadgeEl = document.getElementById('ov-war-badge');
+  if (ovScoreEl) {
+    ovScoreEl.textContent = totalScore;
+    ovScoreEl.style.color = zoneColor;
+  }
+  if (ovBarEl) {
+    ovBarEl.style.width = totalScore + '%';
+    ovBarEl.style.background = zoneColor;
+  }
+  if (ovBadgeEl) {
+    const emoji = totalScore > 80 ? '🔴' : totalScore > 60 ? '🟠' : totalScore > 30 ? '🟡' : '🟢';
+    ovBadgeEl.textContent = emoji + ' ' + totalScore + '分 ' + zone;
+    ovBadgeEl.style.background = zoneColor.replace('var(', 'rgba(').replace(')', ',0.15)');
+    ovBadgeEl.style.color = zoneColor;
+    ovBadgeEl.style.borderColor = zoneColor.replace('var(', 'rgba(').replace(')', ',0.3)');
+  }
+
+  // ====== UPDATE WAR INDEX SECTION ======
+  const wiScoreEl = document.getElementById('wi-main-score');
+  const wiBarEl = document.getElementById('wi-score-bar');
+  const wiZoneEl = document.getElementById('wi-zone-label');
+  const wiBadgeEl = document.getElementById('wi-header-badge');
+
+  if (wiScoreEl) {
+    wiScoreEl.textContent = totalScore;
+    wiScoreEl.style.color = zoneColor;
+  }
+  if (wiBarEl) {
+    wiBarEl.style.width = totalScore + '%';
+    wiBarEl.style.background = 'linear-gradient(90deg,var(--green) 0%,var(--yellow) 30%,var(--orange) 60%,var(--red) 80%)';
+  }
+  if (wiZoneEl) wiZoneEl.textContent = zone + '区间 · 建议仓位' + positionAdvice;
+  if (wiBadgeEl) {
+    const emoji = totalScore > 80 ? '🔴' : totalScore > 60 ? '🟠' : totalScore > 30 ? '🟡' : '🟢';
+    wiBadgeEl.textContent = emoji + ' ' + totalScore + '分 ' + zone + '区间';
+    wiBadgeEl.style.background = zoneColor.replace('var(', 'rgba(').replace(')', ',0.15)');
+    wiBadgeEl.style.color = zoneColor;
+  }
+
+  // Update War Index section bars
+  updateWarDimCard('military', militaryScore, 20, 'var(--red)', null, 'wi-');
+  updateWarDimCard('energy', energyScore, 25, 'var(--gold)', null, 'wi-');
+  updateWarDimCard('market', marketScore, 15, 'var(--blue)', null, 'wi-');
+  updateWarDimCard('diplomacy', diplomacyScore, 20, 'var(--purple)', null, 'wi-');
+  updateWarDimCard('supply', supplyScore, 20, 'var(--orange)', null, 'wi-');
+
+  // Position badge
+  const posBadgeEl = document.getElementById('wi-position-badge');
+  if (posBadgeEl) {
+    if (totalScore > 80) {
+      posBadgeEl.textContent = positionAdvice + ' 限仓';
+      posBadgeEl.className = 'badge badge-red';
+    } else if (totalScore > 60) {
+      posBadgeEl.textContent = positionAdvice + ' 减仓';
+      posBadgeEl.className = 'badge badge-purple';
+    } else if (totalScore > 30) {
+      posBadgeEl.textContent = positionAdvice + ' 正常';
+      posBadgeEl.className = 'badge badge-blue';
+    } else {
+      posBadgeEl.textContent = positionAdvice + ' 积极';
+      posBadgeEl.className = 'badge badge-green';
+    }
+  }
+  const posLabelEl = document.getElementById('wi-position-label');
+  if (posLabelEl) posLabelEl.textContent = zoneColor.includes('red') ? '限仓' : zoneColor.includes('orange') ? '减仓' : '正常';
+
+  // Signal detail
+  const sigDetailEl = document.getElementById('wi-signal-detail');
+  if (sigDetailEl) {
+    const oilStr = 'WTI $' + wtiPrice.toFixed(2) + ' (' + (wtiChgPct >= 0 ? '+' : '') + wtiChgPct.toFixed(2) + '%) | ';
+    const vixStr = 'VIX ' + vixVal + ' | ';
+    const spxStr = 'SPX ' + (spxPrice > 0 ? spxPrice.toLocaleString() : '—') + ' (' + (spxChgPct >= 0 ? '+' : '') + spxChgPct.toFixed(2) + '%)';
+    sigDetailEl.textContent = '📡 实时信号：' + oilStr + vixStr + spxStr;
+  }
+
+  // Dynamic alerts
+  const alertContainer = document.getElementById('wi-alert-container');
+  if (alertContainer) {
+    const now = new Date();
+    const timeStr = now.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const alertTimeEl = document.getElementById('wi-analysis-time');
+    if (alertTimeEl) alertTimeEl.textContent = '⏱ ' + timeStr;
+
+    let alerts = [];
+    // Top risk factor
+    const dimScores = [
+      { name: '军事', score: militaryScore, max: 20, color: 'var(--red)' },
+      { name: '能源', score: energyScore, max: 25, color: 'var(--gold)' },
+      { name: '市场', score: marketScore, max: 15, color: 'var(--blue)' },
+      { name: '外交', score: diplomacyScore, max: 20, color: 'var(--purple)' },
+      { name: '供应', score: supplyScore, max: 20, color: 'var(--orange)' },
+    ];
+    const sortedDims = [...dimScores].sort((a, b) => (b.score / b.max) - (a.score / a.max));
+    const topRisk = sortedDims[0];
+
+    alerts.push({
+      type: totalScore > 80 ? 'alert-red' : totalScore > 60 ? 'alert-yellow' : 'alert-blue',
+      icon: totalScore > 80 ? '🔴' : totalScore > 60 ? '🟠' : '🟡',
+      title: 'War Index ' + totalScore + '分 · ' + zone + '区间',
+      text: topRisk.name + '风险最高 (' + topRisk.score + '/' + topRisk.max + ')，建议仓位' + positionAdvice + '。' +
+            (totalScore > 80 ? '危机时期，优先防御资产（黄金/债券）。' : totalScore > 60 ? '紧张升级，保持谨慎。' : '局势相对可控，可适度参与。')
+    });
+
+    if (vixVal > 30) {
+      alerts.push({ type: 'alert-red', icon: '📉', title: 'VIX ' + vixVal + ' 恐慌高位', text: '市场波动率飙升，风险资产面临抛售压力。黄金短期可能被流动性危机拖累。' });
+    } else if (vixVal > 25) {
+      alerts.push({ type: 'alert-yellow', icon: '⚠️', title: 'VIX ' + vixVal + ' 风险偏高', text: '市场恐慌情绪升温，关注黄金是否回归避险属性。' });
+    }
+
+    if (brentPrice > 110) {
+      alerts.push({ type: 'alert-red', icon: '🛢', title: '布伦特 $' + brentPrice.toFixed(2) + ' 能源危机', text: '油价突破$110，能源通胀严重，实际利率上行，黄金中期承压。' });
+    } else if (brentPrice > 100) {
+      alerts.push({ type: 'alert-yellow', icon: '🛢', title: '布伦特 $' + brentPrice.toFixed(2) + ' 高位震荡', text: '能源价格高位，通胀压力持续，关注美联储鹰派持续性。' });
+    }
+
+    if (gldChgPct < -2) {
+      alerts.push({ type: 'alert-red', icon: '🥇', title: '黄金日内大跌 ' + gldChgPct.toFixed(2) + '%', text: '流动性危机信号，机构被迫减持黄金。短期技术破位，等待RSI超卖信号。' });
+    } else if (gldChgPct > 1) {
+      alerts.push({ type: 'alert-green', icon: '🥇', title: '黄金反弹 +' + gldChgPct.toFixed(2) + '%', text: '避险情绪回归，关注是否能突破关键技术位。' });
+    }
+
+    alertContainer.innerHTML = alerts.map(a =>
+      '<div class="alert-box ' + a.type + '">' +
+        '<div class="alert-icon">' + a.icon + '</div>' +
+        '<div class="alert-text"><strong>' + a.title + '</strong><br>' + a.text + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  // Dynamic timeline
+  const timelineContainer = document.getElementById('wi-timeline-container');
+  const eventsCountEl = document.getElementById('wi-events-count');
+  if (timelineContainer) {
+    // Generate upcoming events based on current date and War Index
+    const today = new Date();
+    const events = generateDynamicEvents(totalScore, vixVal, brentPrice, gldChgPct, today);
+
+    if (events.length === 0) {
+      timelineContainer.innerHTML = '<div class="alert-box alert-green"><div class="alert-icon">✅</div><div class="alert-text">近期无重大风险事件，建议关注日常数据发布。</div></div>';
+    } else {
+      timelineContainer.innerHTML = events.map(ev =>
+        '<div class="timeline-item">' +
+          '<div class="timeline-date">' + ev.date + '</div>' +
+          '<div class="timeline-dot" style="background:' + ev.color + ';"></div>' +
+          '<div class="timeline-content">' +
+            '<strong>' + ev.title + '</strong>' +
+            '<span class="timeline-badge" style="background:' + ev.color.replace(')', ',0.2)').replace('var(', 'rgba(') + ';color:' + ev.color + ';margin-left:6px;">' + ev.priority + '</span>' +
+            '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + ev.desc + '</div>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+    }
+    if (eventsCountEl) eventsCountEl.textContent = events.length + '项';
+  }
+
+  // Header War Index badge
+  const hdrWarBadge = document.querySelector('.badge-red');
+  if (hdrWarBadge && hdrWarBadge.textContent.includes('War Index')) {
+    hdrWarBadge.textContent = (totalScore > 80 ? '🔴' : totalScore > 60 ? '🟠' : totalScore > 30 ? '🟡' : '🟢') + ' War Index ' + totalScore;
+    hdrWarBadge.style.background = zoneColor.replace('var(', 'rgba(').replace(')', ',0.15)');
+    hdrWarBadge.style.color = zoneColor;
+    hdrWarBadge.style.borderColor = zoneColor.replace('var(', 'rgba(').replace(')', ',0.3)');
+  }
+
+  warIndexState = { totalScore, zone, zoneColor, positionAdvice, militaryScore, energyScore, marketScore, diplomacyScore, supplyScore, vixVal, wtiPrice, brentPrice, gldChgPct, spxChgPct };
+}
+
+function updateWarDimCard(dim, score, max, color, icon, prefix = 'dim-') {
+  const barEl = document.getElementById(prefix + 'bar-' + dim);
+  const scoreEl = document.getElementById(prefix + 'score-' + dim);
+  if (barEl) {
+    barEl.style.width = Math.round(score / max * 100) + '%';
+    barEl.style.background = color;
+  }
+  if (scoreEl) {
+    scoreEl.textContent = score + '/' + max;
+    scoreEl.style.color = color;
+  }
+}
+
+function generateDynamicEvents(totalScore, vixVal, brentPrice, gldChg, today) {
+  const events = [];
+  const dd = (d) => { const dt = new Date(today); dt.setDate(dt.getDate() + d); return (dt.getMonth()+1) + '月' + dt.getDate() + '日'; };
+
+  // High-risk events always shown in crisis
+  if (totalScore > 60) {
+    events.push({ date: dd(1), color: 'var(--red)', title: 'War Index ' + totalScore + ' 持续监测', priority: '持续', desc: '地缘紧张延续，关注霍尔木兹局势最新动态' });
+  }
+
+  // CPI / inflation events
+  if (brentPrice > 100) {
+    events.push({ date: dd(2), color: 'var(--orange)', title: '能源价格冲击监测', priority: '重要', desc: '布伦特$' + brentPrice.toFixed(2) + '，关注本周EIA库存数据' });
+  }
+
+  // VIX spike events
+  if (vixVal > 30) {
+    events.push({ date: dd(1), color: 'var(--red)', title: 'VIX ' + vixVal + ' 极端波动', priority: '警示', desc: '市场恐慌情绪极高，关注是否有流动性危机触发因素' });
+  } else if (vixVal > 25) {
+    events.push({ date: dd(3), color: 'var(--orange)', title: 'VIX 偏高持续监测', priority: '关注', desc: '波动率维持高位，关注债市资金流向' });
+  }
+
+  // Gold price events
+  if (gldChg < -2) {
+    events.push({ date: dd(1), color: 'var(--blue)', title: '黄金急跌后观察期', priority: '关注', desc: '日内跌幅' + gldChg.toFixed(2) + '%，关注是否出现流动性踩踏' });
+  }
+
+  // Regular weekly events
+  events.push({ date: dd(4), color: 'var(--blue)', title: '每周初请失业金人数', priority: '常规', desc: '劳动力市场数据，影响美联储决策' });
+
+  if (totalScore > 80) {
+    events.push({ date: dd(5), color: 'var(--red)', title: '地缘事件复盘窗口', priority: '关键', desc: '紧张局势下每日复盘，关注是否有降级或升级信号' });
+  }
+
+  // Sort by date
+  return events.slice(0, 5);
+}
+
+// ==================== Gold 3-Period Scoring Engine ====================
+/**
+ * 黄金三周期打分框架
+ * 短期 (-10~+10): 技术面 - RSI, 动量, MACD模拟
+ * 中期 (-10~+10): 宏观面 - 实际利率, 通胀, 央行政策
+ * 长期 (-10~+10): 结构面 - 去美元化, 央行购金, ETF持仓
+ * 综合评分 = 短期30% + 中期40% + 长期30%
+ */
+function computeGoldScoring(data) {
+  const commodities = data.commodities || {};
+  const macro = data.macro || {};
+  const indices = data.indices || {};
+
+  const gld = commodities.GLD_PRICE || {};
+  const wti = commodities.WTI || {};
+  const brent = commodities.BRENT || {};
+  const vix = macro.VIX || {};
+  const tnxy = macro.TNXY || {}; // 10Y bond (may be fallback)
+
+  const gldPrice = gld.price || 4500;
+  const gldChgPct = gld.changePct || 0;
+  const wtiPrice = wti.price || 80;
+  const brentPrice = brent.price || 85;
+  const vixVal = vix.price || 18;
+
+  // Historical peak for drawdown
+  const PEAK = 5419;
+
+  // ====== SHORT-TERM SCORING (Technical, 1-4 weeks) ======
+  // Simulated RSI from recent momentum
+  // gldChgPct represents intraday; simulate multi-day momentum
+  let stScore = 0;
+
+  // RSI simulation: extreme change = oversold/overbought
+  if (gldChgPct <= -2) stScore += 3; // Large drop = potential oversold = positive for long
+  else if (gldChgPct <= -1) stScore += 1;
+  else if (gldChgPct >= 2) stScore += 2; // Strong rise = momentum positive
+
+  // Drawdown from peak
+  const drawdown = (gldPrice - PEAK) / PEAK * 100;
+  if (drawdown <= -25) stScore += 4; // Deep drawdown = oversold signal
+  else if (drawdown <= -20) stScore += 3;
+  else if (drawdown <= -15) stScore += 1;
+  else if (drawdown >= -5) stScore -= 2; // Near peak = not oversold
+
+  // VIX as fear gauge: high VIX can mean liquidity selling but also safe-haven demand
+  if (vixVal > 30) stScore += 1; // High fear = gold demand potential
+  else if (vixVal > 25) stScore += 0;
+  else stScore -= 1; // Low fear = less gold demand
+
+  // Momentum direction
+  if (gldChgPct > 0) stScore += 1;
+  else if (gldChgPct < 0) stScore -= 1;
+
+  stScore = Math.max(-10, Math.min(10, stScore));
+
+  // ====== MEDIUM-TERM SCORING (Macro, 1-3 months) ======
+  let mtScore = 0;
+
+  // Oil → inflation → real rates → gold
+  if (brentPrice > 120) mtScore -= 4; // Extreme oil = stagflation = bad short-term gold
+  else if (brentPrice > 110) mtScore -= 3;
+  else if (brentPrice > 100) mtScore -= 2;
+  else if (brentPrice > 90) mtScore -= 1;
+  else mtScore += 1; // Moderate oil = OK for gold
+
+  // VIX as risk indicator
+  if (vixVal > 35) mtScore -= 2; // Crisis = liquidity > safe haven short term
+  else if (vixVal > 25) mtScore += 1; // Elevated risk = gold demand
+
+  // War Index correlation (higher war = higher oil = stagflation risk)
+  const warScore = warIndexState ? warIndexState.totalScore : 50;
+  if (warScore > 80) mtScore -= 2; // Crisis paradox: war → oil → stagflation
+  else if (warScore > 60) mtScore -= 1;
+  else if (warScore < 30) mtScore += 1; // Peace = no stagflation = rate cuts = gold up
+
+  // Price vs medium-term fair value (estimate: 4500-4800)
+  if (gldPrice < 4200) mtScore += 3; // Undervalued
+  else if (gldPrice < 4400) mtScore += 2;
+  else if (gldPrice > 5200) mtScore -= 2; // Overvalued
+
+  mtScore = Math.max(-10, Math.min(10, mtScore));
+
+  // ====== LONG-TERM SCORING (Structural, 6-12 months) ======
+  let ltScore = 0;
+
+  // De-dollarization trend: DXY strong = headwind, DXY weak = tailwind
+  const dxyProxy = 100 + (brentPrice - 85) * 0.5; // proxy
+  if (dxyProxy > 108) ltScore -= 2; // Strong dollar = de-dollarization pause
+  else if (dxyProxy < 100) ltScore += 2; // Weak dollar = de-dollarization accelerated
+
+  // Central bank structural demand: war = more central bank buying
+  if (warScore > 60) ltScore += 2; // More CB gold buying in crisis
+
+  // Inflation expectations: high inflation = long-term gold bullish
+  if (brentPrice > 100) ltScore += 1; // Persistent inflation = gold long-term support
+
+  // Historical drawdown: deep correction = better long-term value
+  if (drawdown <= -25) ltScore += 3; // 25%+ drawdown = historically great entry
+  else if (drawdown <= -20) ltScore += 2;
+  else if (drawdown <= -15) ltScore += 1;
+
+  // War resolution risk (long-term bear case)
+  if (warScore > 80) ltScore -= 1; // If war ends = gold loses safe-haven premium
+
+  ltScore = Math.max(-10, Math.min(10, ltScore));
+
+  // ====== COMPOSITE SCORE ======
+  const composite = Math.round(stScore * 0.3 + mtScore * 0.4 + ltScore * 0.3);
+
+  // ====== SIGNAL LABELS ======
+  function getSignal(score) {
+    if (score >= 6) return { text: '强势买入', color: 'var(--green)', bg: 'rgba(34,197,94,0.15)' };
+    if (score >= 3) return { text: '偏多', color: 'var(--green)', bg: 'rgba(34,197,94,0.1)' };
+    if (score >= -2) return { text: '中性', color: 'var(--yellow)', bg: 'rgba(234,179,8,0.1)' };
+    if (score >= -5) return { text: '偏空', color: 'var(--orange)', bg: 'rgba(240,136,62,0.1)' };
+    return { text: '离场观望', color: 'var(--red)', bg: 'rgba(239,68,68,0.1)' };
+  }
+
+  const stSig = getSignal(stScore);
+  const mtSig = getSignal(mtScore);
+  const ltSig = getSignal(ltScore);
+  const totalSig = getSignal(composite);
+
+  // ====== UPDATE UI ======
+
+  // Total score
+  const totalScoreEl = document.getElementById('gold-total-score');
+  if (totalScoreEl) {
+    totalScoreEl.textContent = composite + '/' + (composite >= 0 ? '+' : '') + composite;
+    totalScoreEl.style.color = totalSig.color;
+  }
+  const totalSignalEl = document.getElementById('gold-total-signal');
+  if (totalSignalEl) totalSignalEl.textContent = totalSig.text;
+
+  // Short-term
+  const stScoreEl = document.getElementById('gold-st-score');
+  const stBarEl = document.getElementById('gold-st-bar');
+  const stBadgeEl = document.getElementById('gold-st-signal-badge');
+  const stDetailEl = document.getElementById('gold-st-detail');
+  if (stScoreEl) {
+    stScoreEl.textContent = (stScore >= 0 ? '+' : '') + stScore;
+    stScoreEl.style.color = stSig.color;
+  }
+  if (stBarEl) stBarEl.style.width = Math.round((stScore + 10) / 20 * 100) + '%';
+  if (stBadgeEl) {
+    stBadgeEl.textContent = stSig.text;
+    stBadgeEl.style.background = stSig.bg;
+    stBadgeEl.style.color = stSig.color;
+  }
+  if (stDetailEl) {
+    const rsiText = gldChgPct <= -2 ? 'RSI ~30 超卖' : gldChgPct <= -1 ? 'RSI ~40 偏低' : gldChgPct >= 2 ? 'RSI ~70 偏高' : 'RSI中性';
+    stDetailEl.textContent = rsiText + ' | ' + (gldChgPct >= 0 ? '动能向上' : '动能向下');
+  }
+
+  // Medium-term
+  const mtScoreEl = document.getElementById('gold-mt-score');
+  const mtBarEl = document.getElementById('gold-mt-bar');
+  const mtBadgeEl = document.getElementById('gold-mt-signal-badge');
+  const mtDetailEl = document.getElementById('gold-mt-detail');
+  if (mtScoreEl) {
+    mtScoreEl.textContent = (mtScore >= 0 ? '+' : '') + mtScore;
+    mtScoreEl.style.color = mtSig.color;
+  }
+  if (mtBarEl) mtBarEl.style.width = Math.round((mtScore + 10) / 20 * 100) + '%';
+  if (mtBadgeEl) {
+    mtBadgeEl.textContent = mtSig.text;
+    mtBadgeEl.style.background = mtSig.bg;
+    mtBadgeEl.style.color = mtSig.color;
+  }
+  if (mtDetailEl) {
+    const oilText = brentPrice > 110 ? '油价危机' : brentPrice > 100 ? '油价高位' : brentPrice > 90 ? '油价温和' : '油价低位';
+    const vixText = vixVal > 30 ? 'VIX极高' : vixVal > 25 ? 'VIX偏高' : 'VIX正常';
+    mtDetailEl.textContent = oilText + ' | ' + vixText;
+  }
+
+  // Long-term
+  const ltScoreEl = document.getElementById('gold-lt-score');
+  const ltBarEl = document.getElementById('gold-lt-bar');
+  const ltBadgeEl = document.getElementById('gold-lt-signal-badge');
+  const ltDetailEl = document.getElementById('gold-lt-detail');
+  if (ltScoreEl) {
+    ltScoreEl.textContent = (ltScore >= 0 ? '+' : '') + ltScore;
+    ltScoreEl.style.color = ltSig.color;
+  }
+  if (ltBarEl) ltBarEl.style.width = Math.round((ltScore + 10) / 20 * 100) + '%';
+  if (ltBadgeEl) {
+    ltBadgeEl.textContent = ltSig.text;
+    ltBadgeEl.style.background = ltSig.bg;
+    ltBadgeEl.style.color = ltSig.color;
+  }
+  if (ltDetailEl) {
+    ltDetailEl.textContent = warScore > 60 ? '央行购金潮' : '去美元化趋势';
+  }
+
+  // Dynamic drawdown
+  const drawdownEl = document.getElementById('gold-drawdown');
+  const ddPct = ((gldPrice - PEAK) / PEAK * 100).toFixed(1);
+  if (drawdownEl) {
+    drawdownEl.textContent = ddPct + '%';
+    drawdownEl.style.color = parseFloat(ddPct) < -20 ? 'var(--red)' : parseFloat(ddPct) < -10 ? 'var(--orange)' : 'var(--gold)';
+  }
+
+  // Report time
+  const reportTimeEl = document.getElementById('gold-report-time');
+  if (reportTimeEl) {
+    const now = new Date();
+    reportTimeEl.textContent = '⏱ ' + now.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Core conclusion
+  const conclusionEl = document.getElementById('gold-core-conclusion');
+  if (conclusionEl) {
+    const drawdownText = parseFloat(ddPct) < -20 ? '深度回调' : parseFloat(ddPct) < -10 ? '中等回调' : '小幅回调';
+    const warText = warScore > 80 ? '地缘危机深化' : warScore > 60 ? '地缘紧张持续' : '地缘相对缓和';
+    const conclusionText =
+      '综合三周期评分 <strong style="color:' + totalSig.color + '">' + totalSig.text + '</strong>（' +
+      '短期' + (stScore>=0?'+':'') + stScore + ' · ' + '中期' + (mtScore>=0?'+':'') + mtScore + ' · ' + '长期' + (ltScore>=0?'+':'') + ltScore + '）。' +
+      '从$5,419高点' + drawdownText + '至$' + gldPrice.toFixed(0) + '（' + ddPct + '%），' + warText + '，' +
+      (brentPrice > 100 ? '能源价格高位压缩黄金上涨空间。' : '能源价格温和，滞胀逻辑支撑黄金。') +
+      (composite >= 3 ? '中期战略布局机会。' : composite <= -3 ? '短期等待更好入场点。' : '短期中性，等待信号。');
+
+    conclusionEl.innerHTML =
+      '<div class="alert-icon">' + (composite >= 3 ? '💡' : composite <= -3 ? '⚠️' : '📊') + '</div>' +
+      '<div class="alert-text"><strong>三周期综合评分：' + (composite>=0?'+':'') + composite + '分 · ' + totalSig.text + '</strong><br>' + conclusionText + '</div>';
+    conclusionEl.className = 'alert-box ' + (composite >= 3 ? 'alert-green' : composite <= -3 ? 'alert-red' : 'alert-blue');
+    conclusionEl.style.borderLeftColor = totalSig.color;
+  }
+
+  // Drivers analysis
+  const driversEl = document.getElementById('gold-drivers-container');
+  if (driversEl) {
+    const drivers = [];
+
+    // Short-term drivers
+    drivers.push({
+      type: gldChgPct < -1 ? 'alert-red' : gldChgPct > 1 ? 'alert-green' : 'alert-yellow',
+      icon: gldChgPct < -1 ? '📉' : gldChgPct > 1 ? '📈' : '➡️',
+      title: '短期动能：' + (gldChgPct >= 0 ? '+' : '') + gldChgPct.toFixed(2) + '%',
+      text: gldChgPct < -2 ? '急跌触发止损，关注流动性踩踏。' :
+            gldChgPct < -1 ? '明显下跌，动能偏空，短期不追多。' :
+            gldChgPct > 1 ? '强势反弹，RSI接近超买区域。' :
+            '区间震荡，无明确方向。'
+    });
+
+    // VIX driver
+    drivers.push({
+      type: vixVal > 30 ? 'alert-red' : vixVal > 20 ? 'alert-yellow' : 'alert-green',
+      icon: vixVal > 30 ? '🔥' : vixVal > 20 ? '⚠️' : '✅',
+      title: '市场恐慌 VIX：' + vixVal,
+      text: vixVal > 35 ? '极高恐慌 = 流动性危机风险 > 黄金短期承压' :
+            vixVal > 25 ? '偏高恐慌 = 黄金避险需求浮现，关注能否突破' :
+            '正常区间 = 黄金暂无特殊避险溢价'
+    });
+
+    // Oil driver
+    drivers.push({
+      type: brentPrice > 110 ? 'alert-red' : brentPrice > 100 ? 'alert-yellow' : 'alert-green',
+      icon: brentPrice > 110 ? '🛢' : brentPrice > 100 ? '⚠️' : '✅',
+      title: '能源冲击 布伦特：$' + brentPrice.toFixed(2),
+      text: brentPrice > 120 ? '极端能源危机 = 滞胀最严重期 = 黄金中期最大压力' :
+            brentPrice > 110 ? '能源高位 = 通胀预期高位 = 实际利率上行 = 黄金承压' :
+            brentPrice > 100 ? '能源偏高 = 通胀压力 = 黄金上行受限' :
+            '能源合理 = 滞胀逻辑支撑黄金'
+    });
+
+    // War driver
+    drivers.push({
+      type: warScore > 80 ? 'alert-red' : warScore > 60 ? 'alert-yellow' : 'alert-green',
+      icon: warScore > 80 ? '⚔️' : warScore > 60 ? '⚠️' : '🕊',
+      title: 'War Index：' + warScore + '分 (' + (warIndexState ? warIndexState.zone : '未知') + ')',
+      text: warScore > 80 ? '「通胀型战争悖论」激活：油价↑ → 通胀↑ → 降息↓ → 黄金↓' :
+            warScore > 60 ? '地缘紧张持续 = 滞胀风险 + 黄金长多短空格局' :
+            '局势缓和 = 传统避险 + 黄金回归配置属性'
+    });
+
+    driversEl.innerHTML = drivers.map(d =>
+      '<div class="alert-box ' + d.type + '">' +
+        '<div class="alert-icon">' + d.icon + '</div>' +
+        '<div class="alert-text"><strong>' + d.title + '</strong><br>' + d.text + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  // Actions container
+  const actionsEl = document.getElementById('gold-actions-container');
+  if (actionsEl) {
+    const actions = [];
+
+    // Core action based on composite
+    if (composite >= 6) {
+      actions.push({ type: 'alert-green', icon: '💰', text: '<strong>战略买入区间</strong>：三周期同多，综合评分+' + composite + '，历史深度回调+长期逻辑完好，视为极佳布局窗口。' });
+      actions.push({ type: 'alert-green', icon: '✅', text: '<strong>分批建仓</strong>：当前价格$ ' + gldPrice.toFixed(0) + '，可分3批买入，目标$5,000+' });
+    } else if (composite >= 3) {
+      actions.push({ type: 'alert-green', icon: '📈', text: '<strong>偏多信号</strong>：中期和长期评分支持，建议持有或小幅加仓。' });
+      actions.push({ type: 'alert-yellow', icon: '⏳', text: '<strong>等待确认</strong>：短期技术面尚未完全企稳，等RSI回落至40以下再加仓。' });
+    } else if (composite >= -2) {
+      actions.push({ type: 'alert-yellow', icon: '⏸️', text: '<strong>中性观望</strong>：短期承压、中期中性、长期支撑，方向不明确。' });
+      actions.push({ type: 'alert-yellow', icon: '💰', text: '<strong>现有仓位维持</strong>：已有仓位的持有不动，不追空不加仓。' });
+    } else if (composite >= -5) {
+      actions.push({ type: 'alert-red', icon: '⚠️', text: '<strong>偏空信号</strong>：短期技术破位 + 滞胀压力，不建议新增多头。' });
+      actions.push({ type: 'alert-yellow', icon: '📋', text: '<strong>关键支撑 $4,200</strong>：若跌破$4,200，出现历史级别超卖，可重新评估。' });
+    } else {
+      actions.push({ type: 'alert-red', icon: '🚨', text: '<strong>离场观望</strong>：多重利空共振（VIX极端 + 油价危机 + War Index危机），黄金短期仍将被流动性踩踏拖累。' });
+      actions.push({ type: 'alert-blue', icon: '🔍', text: '<strong>关注反转信号</strong>：VIX从高位回落 + 油价下跌 + War Index降至60以下 = 重新做多信号。' });
+    }
+
+    // Ceasefire risk always show
+    actions.push({ type: 'alert-red', icon: '🚨', text: '<strong>停火风险警示</strong>：一旦美伊达成协议（War Index骤降），油价将暴跌30%+，黄金多单立即平仓。' });
+
+    actionsEl.innerHTML = actions.map(a =>
+      '<div class="alert-box ' + a.type + '">' +
+        '<div class="alert-icon">' + a.icon + '</div>' +
+        '<div class="alert-text">' + a.text + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  goldState = { composite, stScore, mtScore, ltScore, gldPrice, gldChgPct, drawdown: ddPct, totalSig };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>War Index 全天一体化看板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        war: {
+                            calm: '#22c55e',
+                            tense: '#eab308',
+                            escalated: '#f97316',
+                            crisis: '#ef4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+        .card-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+        .score-bar {
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+        }
+        .timeline-line {
+            background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+        .price-up { color: #ef4444; }
+        .price-down { color: #22c55e; }
+        .loading-skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="border-b border-slate-700/50 backdrop-blur-sm bg-slate-900/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-2xl">⚔️</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">War Index 全天一体化看板</h1>
+                        <p class="text-slate-400 text-sm" id="current-time">加载中...</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="risk-level-badge" class="px-3 py-1 bg-war-tense/20 text-war-tense rounded-full text-sm font-medium">
+                        评估中
+                    </span>
+                    <button onclick="refreshAllData()" class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition flex items-center gap-2">
+                        <span id="refresh-icon" class="pulse-dot">●</span>
+                        <span id="refresh-text">实时监控中</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <!-- 核心指数概览 -->
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <!-- War Index 总分 -->
+            <div class="lg:col-span-1 bg-slate-800/50 backdrop-blur rounded-2xl p-6 card-glow border border-slate-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-slate-400 text-sm">War Index 总分</span>
+                    <span class="text-2xl">📊</span>
+                </div>
+                <div class="text-center">
+                    <span id="war-score" class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-war-crisis to-war-escalated">
+                        --
+                    </span>
+                    <span class="text-slate-400 text-lg">/100</span>
+                    <div class="mt-3 flex items-center justify-center gap-2">
+                        <span id="risk-label" class="px-2 py-1 bg-war-tense/20 text-war-tense rounded text-xs font-medium">
+                            评估中
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span>0</span><span>30</span><span>60</span><span>80</span><span>100</span>
+                    </div>
+                    <div class="h-3 bg-slate-700 rounded-full overflow-hidden">
+                        <div id="score-bar" class="h-full bg-gradient-to-r from-war-calm via-war-tense via-war-escalated to-war-crisis rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 市场数据 -->
+            <div class="lg:col-span-3 bg-slate-800/50 backdrop-blur rounded-2xl p-6 card-glow border border-slate-700/50">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span>🌐</span> 实时市场数据
+                    <span id="data-status" class="text-xs text-slate-500 ml-2">数据加载中...</span>
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">WTI原油</div>
+                        <div id="wti-price" class="text-lg font-semibold text-war-escalated loading-skeleton rounded">--</div>
+                        <div id="wti-change" class="text-xs">--</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">布伦特</div>
+                        <div id="brent-price" class="text-lg font-semibold text-war-escalated loading-skeleton rounded">--</div>
+                        <div id="brent-change" class="text-xs">--</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">黄金</div>
+                        <div id="gold-price" class="text-lg font-semibold text-yellow-400 loading-skeleton rounded">--</div>
+                        <div id="gold-change" class="text-xs">--</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">白银</div>
+                        <div id="silver-price" class="text-lg font-semibold loading-skeleton rounded">--</div>
+                        <div id="silver-change" class="text-xs">--</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">VIX</div>
+                        <div id="vix-price" class="text-lg font-semibold text-war-escalated loading-skeleton rounded">--</div>
+                        <div id="vix-change" class="text-xs text-slate-400">恐慌指数</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">标普500</div>
+                        <div id="spx-price" class="text-lg font-semibold loading-skeleton rounded">--</div>
+                        <div id="spx-change" class="text-xs">--</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-700/30 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">沪深300</div>
+                        <div id="csi-price" class="text-lg font-semibold loading-skeleton rounded">--</div>
+                        <div id="csi-change" class="text-xs">--</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 五维评分 -->
+        <section class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 card-glow border border-slate-700/50">
+            <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                <span>🎯</span> War Index 五维评分
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-300">军事强度</span>
+                        <span id="score-military" class="font-bold text-war-crisis">--/30</span>
+                    </div>
+                    <div class="score-bar bg-slate-700">
+                        <div id="bar-military" class="score-bar bg-war-crisis" style="width: 0%"></div>
+                    </div>
+                    <p id="desc-military" class="text-xs text-slate-400">评估中...</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-300">能源冲击</span>
+                        <span id="score-energy" class="font-bold text-war-crisis">--/25</span>
+                    </div>
+                    <div class="score-bar bg-slate-700">
+                        <div id="bar-energy" class="score-bar bg-war-crisis" style="width: 0%"></div>
+                    </div>
+                    <p id="desc-energy" class="text-xs text-slate-400">评估中...</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-300">市场反应</span>
+                        <span id="score-market" class="font-bold text-war-escalated">--/15</span>
+                    </div>
+                    <div class="score-bar bg-slate-700">
+                        <div id="bar-market" class="score-bar bg-war-escalated" style="width: 0%"></div>
+                    </div>
+                    <p id="desc-market" class="text-xs text-slate-400">评估中...</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-300">外交状态</span>
+                        <span id="score-diplomacy" class="font-bold text-war-tense">--/15</span>
+                    </div>
+                    <div class="score-bar bg-slate-700">
+                        <div id="bar-diplomacy" class="score-bar bg-war-tense" style="width: 0%"></div>
+                    </div>
+                    <p id="desc-diplomacy" class="text-xs text-slate-400">评估中...</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-300">供应链风险</span>
+                        <span id="score-supply" class="font-bold text-war-escalated">--/15</span>
+                    </div>
+                    <div class="score-bar bg-slate-700">
+                        <div id="bar-supply" class="score-bar bg-war-escalated" style="width: 0%"></div>
+                    </div>
+                    <p id="desc-supply" class="text-xs text-slate-400">评估中...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 晨报/午报/晚报时间线 -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 晨报 -->
+            <div class="bg-gradient-to-br from-blue-900/30 to-blue-800/10 backdrop-blur rounded-2xl p-6 border border-blue-500/20">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🌅</span>
+                        <h3 class="font-semibold">晨报 07:30</h3>
+                    </div>
+                    <span id="morning-status" class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">待执行</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="text-sm">
+                        <span class="text-slate-400">War Index:</span>
+                        <span id="morning-score" class="font-bold text-war-tense ml-2">--分</span>
+                    </div>
+                    <div class="text-sm">
+                        <span class="text-slate-400">仓位建议:</span>
+                        <span id="morning-position" class="font-bold ml-2">--%</span>
+                    </div>
+                    <div id="morning-content" class="text-xs text-slate-400 space-y-1">
+                        <p>• 等待晨报生成...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 午报 -->
+            <div class="bg-gradient-to-br from-orange-900/30 to-orange-800/10 backdrop-blur rounded-2xl p-6 border border-orange-500/20">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">☀️</span>
+                        <h3 class="font-semibold">午报 12:00</h3>
+                    </div>
+                    <span id="midday-status" class="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-xs">待执行</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="text-sm">
+                        <span class="text-slate-400">War Index:</span>
+                        <span id="midday-score" class="font-bold text-war-tense ml-2">--分</span>
+                    </div>
+                    <div class="text-sm">
+                        <span class="text-slate-400">仓位建议:</span>
+                        <span id="midday-position" class="font-bold ml-2">--%</span>
+                    </div>
+                    <div id="midday-content" class="text-xs text-slate-400 space-y-1">
+                        <p>• 等待午报生成...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 晚报 -->
+            <div class="bg-gradient-to-br from-purple-900/30 to-purple-800/10 backdrop-blur rounded-2xl p-6 border border-purple-500/20">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🌙</span>
+                        <h3 class="font-semibold">晚报 19:00</h3>
+                    </div>
+                    <span id="evening-status" class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs">待执行</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="text-sm">
+                        <span class="text-slate-400">War Index:</span>
+                        <span id="evening-score" class="font-bold text-war-tense ml-2">--分</span>
+                    </div>
+                    <div class="text-sm">
+                        <span class="text-slate-400">仓位建议:</span>
+                        <span id="evening-position" class="font-bold ml-2">--%</span>
+                    </div>
+                    <div id="evening-content" class="text-xs text-slate-400 space-y-1">
+                        <p>• 等待晚报生成...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 仓位配置建议 -->
+        <section class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 card-glow border border-slate-700/50">
+            <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                <span>💼</span> 当前仓位配置建议 <span id="position-update-time" class="text-xs text-slate-500 ml-2">基于War Index自动计算</span>
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="text-center p-4 bg-gradient-to-br from-blue-900/50 to-blue-800/20 rounded-xl border border-blue-500/30">
+                    <div class="text-2xl mb-2">🛢️</div>
+                    <div class="text-sm text-slate-400">LNG/油气</div>
+                    <div id="pos-oil" class="text-xl font-bold text-blue-400">--%</div>
+                    <div id="pos-oil-note" class="text-xs text-slate-400 mt-1">--</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-indigo-900/50 to-indigo-800/20 rounded-xl border border-indigo-500/30">
+                    <div class="text-2xl mb-2">🚢</div>
+                    <div class="text-sm text-slate-400">航运</div>
+                    <div id="pos-shipping" class="text-xl font-bold text-indigo-400">--%</div>
+                    <div id="pos-shipping-note" class="text-xs text-slate-400 mt-1">--</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-green-900/50 to-green-800/20 rounded-xl border border-green-500/30">
+                    <div class="text-2xl mb-2">🛡️</div>
+                    <div class="text-sm text-slate-400">军工</div>
+                    <div id="pos-defense" class="text-xl font-bold text-green-400">--%</div>
+                    <div id="pos-defense-note" class="text-xs text-slate-400 mt-1">--</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-yellow-900/50 to-yellow-800/20 rounded-xl border border-yellow-500/30">
+                    <div class="text-2xl mb-2">🥇</div>
+                    <div class="text-sm text-slate-400">黄金</div>
+                    <div id="pos-gold" class="text-xl font-bold text-yellow-400">--%</div>
+                    <div id="pos-gold-note" class="text-xs text-slate-400 mt-1">--</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-slate-700/50 to-slate-600/20 rounded-xl border border-slate-500/30">
+                    <div class="text-2xl mb-2">💵</div>
+                    <div class="text-sm text-slate-400">现金USD</div>
+                    <div id="pos-cash" class="text-xl font-bold text-slate-300">--%</div>
+                    <div id="pos-cash-note" class="text-xs text-slate-400 mt-1">--</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-purple-900/50 to-purple-800/20 rounded-xl border border-purple-500/30">
+                    <div class="text-2xl mb-2">💻</div>
+                    <div class="text-sm text-slate-400">科技</div>
+                    <div id="pos-tech" class="text-xl font-bold text-purple-400">--%</div>
+                    <div id="pos-tech-note" class="text-xs text-slate-400 mt-1">--</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 风控状态 -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 card-glow border border-slate-700/50">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span>🛑</span> 风控状态
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📈</span>
+                            <div>
+                                <div class="text-sm font-medium">VIX 恐慌指数</div>
+                                <div class="text-xs text-slate-400">预警线 32</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="vix-alert" class="text-lg font-bold text-war-escalated">--</div>
+                            <div id="vix-status" class="text-xs text-green-400">监控中</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🛢️</span>
+                            <div>
+                                <div class="text-sm font-medium">WTI-Brent 价差</div>
+                                <div class="text-xs text-slate-400">预警线 $10</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="spread-alert" class="text-lg font-bold text-war-tense">--</div>
+                            <div id="spread-status" class="text-xs text-green-400">正常</div>
+                        </div>
+                    </div>
+                    <div id="risk-event-card" class="flex items-center justify-between p-3 bg-war-crisis/10 border border-war-crisis/30 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">⚠️</span>
+                            <div>
+                                <div class="text-sm font-medium">一级风险事件</div>
+                                <div id="risk-event-desc" class="text-xs text-slate-400">无</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="risk-event-status" class="text-sm font-bold text-green-400">正常</div>
+                            <div id="risk-event-action" class="text-xs text-slate-400">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 核心情报 -->
+            <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 card-glow border border-slate-700/50">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span>🔴</span> 实时分析摘要
+                </h2>
+                <div id="analysis-container" class="space-y-3 text-sm">
+                    <div class="p-3 bg-slate-700/30 rounded-xl">
+                        <div class="font-medium text-slate-400">等待数据...</div>
+                        <p class="text-slate-500 mt-1">正在获取市场数据并分析...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 快捷操作 -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button onclick="refreshAllData()" class="p-4 bg-slate-700/50 hover:bg-slate-700 rounded-xl border border-slate-600/50 transition text-center">
+                <div class="text-2xl mb-2">🔄</div>
+                <div class="text-sm">刷新数据</div>
+            </button>
+            <button onclick="generateMorningReport()" class="p-4 bg-blue-900/30 hover:bg-blue-900/50 rounded-xl border border-blue-500/30 transition text-center">
+                <div class="text-2xl mb-2">🌅</div>
+                <div class="text-sm">生成晨报</div>
+            </button>
+            <button onclick="generateMiddayReport()" class="p-4 bg-orange-900/30 hover:bg-orange-900/50 rounded-xl border border-orange-500/30 transition text-center">
+                <div class="text-2xl mb-2">☀️</div>
+                <div class="text-sm">生成午报</div>
+            </button>
+            <button onclick="generateEveningReport()" class="p-4 bg-purple-900/30 hover:bg-purple-900/50 rounded-xl border border-purple-500/30 transition text-center">
+                <div class="text-2xl mb-2">🌙</div>
+                <div class="text-sm">生成晚报</div>
+            </button>
+        </section>
+    </main>
+
+    <footer class="border-t border-slate-700/50 mt-12 py-6 text-center text-slate-500 text-sm">
+        <p>War Index 全天一体化看板 · 自动同步实时市场数据</p>
+        <p id="footer-update" class="mt-1">最后更新：--</p>
+    </footer>
+
+    <script>
+        // ===== 全局数据存储 =====
+        let marketData = {
+            wti: null, brent: null, gold: null, silver: null,
+            vix: null, spx: null, csi: null, ndx: null
+        };
+
+        // ===== 新浪期货数据获取 =====
+        async function sinaFuturesFetch(code) {
+            try {
+                const url = `https://qt.gtimg.cn/q=${code}`;
+                const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+                if (!res.ok) return null;
+                const text = await res.text();
+                if (text.includes('none_match') || text.includes('pv_none')) return null;
+                const match = text.match(/="([^"]+)"/);
+                if (!match) return null;
+                const fields = match[1].split(',');
+                if (fields.length < 6) return null;
+                const price = parseFloat(fields[0]);
+                if (isNaN(price)) return null;
+                return {
+                    price,
+                    changePct: parseFloat(fields[1]) || 0,
+                    prevClose: parseFloat(fields[2]) || price
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ===== 腾讯财经数据获取 =====
+        async function tencentFetch(code) {
+            try {
+                const url = `https://qt.gtimg.cn/q=${code}`;
+                const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+                if (!res.ok) return null;
+                const text = await res.text();
+                if (text.includes('none_match') || text.includes('pv_none')) return null;
+                const match = text.match(/="([^"]+)"/);
+                if (!match) return null;
+                const fields = match[1].split('~');
+                if (fields.length < 40) return null;
+                const price = parseFloat(fields[3]);
+                const prevClose = parseFloat(fields[4]);
+                if (isNaN(price)) return null;
+                // 手动用昨收重新计算涨跌幅，避免API缓存数据不准
+                const changePct = (prevClose > 0) ? ((price - prevClose) / prevClose * 100) : 0;
+                return {
+                    price,
+                    prevClose,
+                    changePct
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ===== 格式化价格 =====
+        function formatPrice(price, decimals = 2) {
+            if (price === null || price === undefined) return '--';
+            return price.toLocaleString('en-US', { 
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals 
+            });
+        }
+
+        // ===== 格式化涨跌幅 =====
+        function formatChange(changePct) {
+            if (changePct === null || changePct === undefined) return '--';
+            const sign = changePct >= 0 ? '+' : '';
+            return sign + changePct.toFixed(2) + '%';
+        }
+
+        // ===== 更新War Index评分（基于市场数据自动计算）=====
+        function calculateWarIndex(data) {
+            let score = 0;
+            const details = {
+                military: { score: 0, max: 30, desc: '' },
+                energy: { score: 0, max: 25, desc: '' },
+                market: { score: 0, max: 15, desc: '' },
+                diplomacy: { score: 0, max: 15, desc: '' },
+                supply: { score: 0, max: 15, desc: '' }
+            };
+
+            // 能源冲击评分（WTI和布伦特）
+            if (data.brent) {
+                if (data.brent.price > 120) {
+                    details.energy.score = 25;
+                    details.energy.desc = `布伦特$${formatPrice(data.brent.price)}极度紧张`;
+                } else if (data.brent.price > 100) {
+                    details.energy.score = 20;
+                    details.energy.desc = `布伦特$${formatPrice(data.brent.price)}高位震荡`;
+                } else if (data.brent.price > 85) {
+                    details.energy.score = 12;
+                    details.energy.desc = `布伦特$${formatPrice(data.brent.price)}中等冲击`;
+                } else {
+                    details.energy.score = 5;
+                    details.energy.desc = `布伦特$${formatPrice(data.brent.price)}正常水平`;
+                }
+            }
+
+            // 市场反应评分（VIX）
+            if (data.vix) {
+                if (data.vix > 40) {
+                    details.market.score = 15;
+                    details.market.desc = `VIX ${data.vix}极度恐慌`;
+                } else if (data.vix > 30) {
+                    details.market.score = 12;
+                    details.market.desc = `VIX ${data.vix}高度紧张`;
+                } else if (data.vix > 20) {
+                    details.market.score = 8;
+                    details.market.desc = `VIX ${data.vix}偏紧张`;
+                } else {
+                    details.market.score = 3;
+                    details.market.desc = `VIX ${data.vix}相对平静`;
+                }
+            }
+
+            // 黄金作为避险指标
+            if (data.gold) {
+                if (data.gold.price > 3000) {
+                    details.supply.score = 12;
+                    details.supply.desc = `黄金$${formatPrice(data.gold.price)}创历史新高`;
+                } else if (data.gold.price > 2500) {
+                    details.supply.score = 8;
+                    details.supply.desc = `黄金$${formatPrice(data.gold.price)}高位避险`;
+                } else {
+                    details.supply.score = 4;
+                    details.supply.desc = `黄金$${formatPrice(data.gold.price)}正常区间`;
+                }
+            }
+
+            // 标普500影响
+            if (data.spx && data.spx.changePct !== null) {
+                if (data.spx.changePct < -3) {
+                    details.market.score += 3;
+                    details.market.desc += ' · 美股暴跌';
+                } else if (data.spx.changePct < -1) {
+                    details.market.score += 1;
+                    details.market.desc += ' · 美股下跌';
+                }
+            }
+
+            // 军事强度默认中等（需要手动更新）
+            details.military.score = 15;
+            details.military.desc = '请手动评估军事局势';
+
+            // 外交状态默认（需要手动更新）
+            details.diplomacy.score = 7;
+            details.diplomacy.desc = '请手动评估外交状态';
+
+            score = details.military.score + details.energy.score + details.market.score + 
+                    details.diplomacy.score + details.supply.score;
+
+            return { score, details };
+        }
+
+        // ===== 计算仓位建议 =====
+        function calculatePosition(score) {
+            let position = 0;
+            let label = '';
+            let color = '';
+
+            if (score >= 80) {
+                position = 50;
+                label = '50% 危机模式';
+                color = 'crisis';
+            } else if (score >= 60) {
+                position = 65;
+                label = '65% 升级区域';
+                color = 'escalated';
+            } else if (score >= 30) {
+                position = 80;
+                label = '80% 正常偏高';
+                color = 'tense';
+            } else {
+                position = 90;
+                label = '90% 正常配置';
+                color = 'calm';
+            }
+
+            return { position, label, color };
+        }
+
+        // ===== 更新UI =====
+        function updateUI(data, warIndexResult) {
+            // 更新市场数据
+            if (data.wti) {
+                document.getElementById('wti-price').textContent = '$' + formatPrice(data.wti.price);
+                document.getElementById('wti-price').className = 'text-lg font-semibold ' + (data.wti.changePct >= 0 ? 'text-war-escalated' : 'text-green-400');
+                document.getElementById('wti-change').textContent = formatChange(data.wti.changePct);
+                document.getElementById('wti-change').className = 'text-xs ' + (data.wti.changePct >= 0 ? 'text-red-400' : 'text-green-400');
+            }
+
+            if (data.brent) {
+                document.getElementById('brent-price').textContent = '$' + formatPrice(data.brent.price);
+                document.getElementById('brent-price').className = 'text-lg font-semibold ' + (data.brent.changePct >= 0 ? 'text-war-escalated' : 'text-green-400');
+                document.getElementById('brent-change').textContent = formatChange(data.brent.changePct);
+                document.getElementById('brent-change').className = 'text-xs ' + (data.brent.changePct >= 0 ? 'text-red-400' : 'text-green-400');
+            }
+
+            if (data.gold) {
+                document.getElementById('gold-price').textContent = '$' + formatPrice(data.gold.price);
+                document.getElementById('gold-price').className = 'text-lg font-semibold text-yellow-400';
+                document.getElementById('gold-change').textContent = formatChange(data.gold.changePct);
+                document.getElementById('gold-change').className = 'text-xs ' + (data.gold.changePct >= 0 ? 'text-green-400' : 'text-red-400');
+            }
+
+            if (data.silver) {
+                document.getElementById('silver-price').textContent = '$' + formatPrice(data.silver.price);
+                document.getElementById('silver-price').className = 'text-lg font-semibold ' + (data.silver.changePct >= 0 ? 'text-yellow-300' : 'text-green-400');
+                document.getElementById('silver-change').textContent = formatChange(data.silver.changePct);
+                document.getElementById('silver-change').className = 'text-xs ' + (data.silver.changePct >= 0 ? 'text-green-400' : 'text-red-400');
+            }
+
+            if (data.vix) {
+                document.getElementById('vix-price').textContent = formatPrice(data.vix, 2);
+                document.getElementById('vix-price').className = 'text-lg font-semibold ' + (data.vix > 30 ? 'text-war-crisis' : data.vix > 20 ? 'text-war-escalated' : 'text-war-tense');
+            }
+
+            if (data.spx) {
+                document.getElementById('spx-price').textContent = formatPrice(data.spx.price, 0);
+                document.getElementById('spx-change').textContent = formatChange(data.spx.changePct);
+                document.getElementById('spx-change').className = 'text-xs ' + (data.spx.changePct >= 0 ? 'text-red-400' : 'text-green-400');
+            }
+
+            if (data.csi) {
+                document.getElementById('csi-price').textContent = formatPrice(data.csi.price, 2);
+                document.getElementById('csi-change').textContent = formatChange(data.csi.changePct);
+                document.getElementById('csi-change').className = 'text-xs ' + (data.csi.changePct >= 0 ? 'text-red-400' : 'text-green-400');
+            }
+
+            // 更新War Index
+            const { score, details } = warIndexResult;
+            document.getElementById('war-score').textContent = score;
+            document.getElementById('score-bar').style.width = score + '%';
+
+            // 风险等级
+            let riskLabel, riskColor;
+            if (score >= 80) {
+                riskLabel = '危机区间';
+                riskColor = 'crisis';
+            } else if (score >= 60) {
+                riskLabel = '升级区间';
+                riskColor = 'escalated';
+            } else if (score >= 30) {
+                riskLabel = '紧张区间';
+                riskColor = 'tense';
+            } else {
+                riskLabel = '缓和区间';
+                riskColor = 'calm';
+            }
+            
+            const badge = document.getElementById('risk-level-badge');
+            badge.textContent = riskLabel;
+            badge.className = `px-3 py-1 bg-war-${riskColor}/20 text-war-${riskColor} rounded-full text-sm font-medium`;
+            
+            const label = document.getElementById('risk-label');
+            label.textContent = riskLabel;
+            label.className = `px-2 py-1 bg-war-${riskColor}/20 text-war-${riskColor} rounded text-xs font-medium`;
+
+            // 更新五维评分
+            document.getElementById('score-military').textContent = details.military.score + '/30';
+            document.getElementById('bar-military').style.width = (details.military.score / 30 * 100) + '%';
+            document.getElementById('desc-military').textContent = details.military.desc;
+
+            document.getElementById('score-energy').textContent = details.energy.score + '/25';
+            document.getElementById('bar-energy').style.width = (details.energy.score / 25 * 100) + '%';
+            document.getElementById('desc-energy').textContent = details.energy.desc;
+
+            document.getElementById('score-market').textContent = details.market.score + '/15';
+            document.getElementById('bar-market').style.width = (details.market.score / 15 * 100) + '%';
+            document.getElementById('desc-market').textContent = details.market.desc;
+
+            document.getElementById('score-diplomacy').textContent = details.diplomacy.score + '/15';
+            document.getElementById('bar-diplomacy').style.width = (details.diplomacy.score / 15 * 100) + '%';
+            document.getElementById('desc-diplomacy').textContent = details.diplomacy.desc;
+
+            document.getElementById('score-supply').textContent = details.supply.score + '/15';
+            document.getElementById('bar-supply').style.width = (details.supply.score / 15 * 100) + '%';
+            document.getElementById('desc-supply').textContent = details.supply.desc;
+
+            // 更新仓位建议
+            const pos = calculatePosition(score);
+            document.getElementById('pos-oil').textContent = pos.position > 70 ? '15-20%' : '10-15%';
+            document.getElementById('pos-shipping').textContent = pos.position > 70 ? '15-20%' : '10-15%';
+            document.getElementById('pos-defense').textContent = pos.position > 70 ? '15-18%' : '10-12%';
+            document.getElementById('pos-gold').textContent = pos.position > 70 ? '15-20%' : '12-15%';
+            document.getElementById('pos-cash').textContent = pos.position < 70 ? '15-20%' : '10-15%';
+            document.getElementById('pos-tech').textContent = pos.position > 70 ? '5-8%' : '10-12%';
+
+            // 风控状态
+            if (data.vix) {
+                const vixEl = document.getElementById('vix-alert');
+                const vixStatusEl = document.getElementById('vix-status');
+                vixEl.textContent = data.vix.toFixed(2);
+                if (data.vix >= 32) {
+                    vixEl.className = 'text-lg font-bold text-war-crisis';
+                    vixStatusEl.textContent = '触发预警!';
+                    vixStatusEl.className = 'text-xs text-red-400';
+                } else if (data.vix >= 25) {
+                    vixEl.className = 'text-lg font-bold text-war-escalated';
+                    vixStatusEl.textContent = '注意';
+                    vixStatusEl.className = 'text-xs text-yellow-400';
+                } else {
+                    vixEl.className = 'text-lg font-bold text-war-tense';
+                    vixStatusEl.textContent = '正常';
+                    vixStatusEl.className = 'text-xs text-green-400';
+                }
+            }
+
+            // WTI-Brent价差
+            if (data.wti && data.brent) {
+                const spread = data.brent.price - data.wti.price;
+                document.getElementById('spread-alert').textContent = '$' + formatPrice(spread);
+                if (spread > 10) {
+                    document.getElementById('spread-status').textContent = '预警!';
+                    document.getElementById('spread-status').className = 'text-xs text-red-400';
+                }
+            }
+
+            // 更新分析摘要
+            updateAnalysisSummary(data, warIndexResult);
+
+            // 更新时间
+            document.getElementById('data-status').textContent = '数据已更新 ' + new Date().toLocaleTimeString('zh-CN');
+            document.getElementById('footer-update').textContent = '最后更新：' + new Date().toLocaleString('zh-CN');
+        }
+
+        // ===== 更新分析摘要 =====
+        function updateAnalysisSummary(data, warIndexResult) {
+            const container = document.getElementById('analysis-container');
+            let html = '';
+
+            // 能源分析
+            if (data.brent && data.wti) {
+                const spread = data.brent.price - data.wti.price;
+                let energyLevel = '正常';
+                let energyColor = 'green';
+                if (data.brent.price > 100) {
+                    energyLevel = '高度紧张';
+                    energyColor = 'red';
+                } else if (data.brent.price > 85) {
+                    energyLevel = '中等冲击';
+                    energyColor = 'orange';
+                }
+                html += `
+                    <div class="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+                        <div class="font-medium text-orange-400">能源市场：${energyLevel}</div>
+                        <p class="text-slate-400 mt-1">布伦特$${formatPrice(data.brent.price)} · WTI$${formatPrice(data.wti.price)} · 价差$${formatPrice(spread)}</p>
+                    </div>
+                `;
+            }
+
+            // 避险情绪
+            if (data.gold && data.vix) {
+                let safeLevel = '平静';
+                let safeColor = 'green';
+                if (data.vix > 30 || data.gold.price > 3000) {
+                    safeLevel = '极度恐慌';
+                    safeColor = 'red';
+                } else if (data.vix > 20 || data.gold.price > 2500) {
+                    safeLevel = '高度紧张';
+                    safeColor = 'orange';
+                }
+                html += `
+                    <div class="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                        <div class="font-medium text-yellow-400">避险情绪：${safeLevel}</div>
+                        <p class="text-slate-400 mt-1">黄金$${formatPrice(data.gold.price)} · VIX ${data.vix?.toFixed(2) || '--'}</p>
+                    </div>
+                `;
+            }
+
+            // 综合评级
+            const pos = calculatePosition(warIndexResult.score);
+            html += `
+                <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                    <div class="font-medium text-blue-400">综合仓位建议</div>
+                    <p class="text-slate-400 mt-1">建议仓位：${pos.label}</p>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // ===== 更新时间 =====
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('current-time').textContent = 
+                now.toLocaleDateString('zh-CN', options);
+        }
+        setInterval(updateTime, 60000);
+
+        // ===== 刷新所有数据 =====
+        async function refreshAllData() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            const refreshText = document.getElementById('refresh-text');
+            refreshIcon.className = 'animate-spin';
+            refreshText.textContent = '刷新中...';
+            document.getElementById('data-status').textContent = '正在获取数据...';
+
+            try {
+                // 并行获取所有市场数据
+                const [wti, brent, gold, silver, spx, csi] = await Promise.all([
+                    sinaFuturesFetch('hf_CL'),
+                    sinaFuturesFetch('hf_OIL'),
+                    sinaFuturesFetch('hf_GC'),
+                    sinaFuturesFetch('hf_SI'),
+                    tencentFetch('usINX'),
+                    tencentFetch('sh000300')
+                ]);
+
+                marketData = { wti, brent, gold, silver, vix: null, spx, csi };
+
+                // 估算VIX（基于市场数据）
+                if (gold && gold.changePct > 2) {
+                    marketData.vix = 25 + Math.min(gold.changePct * 2, 15);
+                } else if (spx && spx.changePct < -2) {
+                    marketData.vix = 22 + Math.min(Math.abs(spx.changePct) * 2, 15);
+                } else {
+                    marketData.vix = 18;
+                }
+
+                // 计算War Index
+                const warIndexResult = calculateWarIndex(marketData);
+                
+                // 更新UI
+                updateUI(marketData, warIndexResult);
+
+                document.getElementById('data-status').textContent = '✓ 数据已更新';
+                
+            } catch (e) {
+                console.error('Data fetch error:', e);
+                document.getElementById('data-status').textContent = '获取失败，请重试';
+            }
+
+            refreshIcon.className = 'pulse-dot';
+            refreshText.textContent = '实时监控中';
+        }
+
+        // ===== 生成报告 =====
+        function generateMorningReport() {
+            alert('晨报将在每天07:30自动生成。\n如需手动生成，请运行 War Index 晨报任务。');
+        }
+        function generateMiddayReport() {
+            alert('午报将在每天12:00自动生成。\n如需手动生成，请运行 War Index 午报任务。');
+        }
+        function generateEveningReport() {
+            alert('晚报将在每天19:00自动生成。\n如需手动生成，请运行 War Index 晚报任务。');
+        }
+
+        // ===== 启动 =====
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            refreshAllData();
+            // 每5分钟自动刷新
+            setInterval(refreshAllData, 5 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>
