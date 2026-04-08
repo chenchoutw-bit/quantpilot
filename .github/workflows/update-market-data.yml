@@ -1,0 +1,150 @@
+name: Daily Market Data Update
+
+on:
+  schedule:
+    # Run at 07:35 UTC (15:35 Beijing time) every day
+    - cron: '35 7 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install akshare pandas requests
+        
+      - name: Fetch market data
+        run: |
+          python << 'EOF'
+          import akshare as ak
+          import json
+          import re
+          from datetime import datetime
+          
+          print("Fetching market data...")
+          
+          data = {
+              "timestamp": datetime.now().isoformat(),
+              "commodities": {},
+              "indices": {},
+              "forex": {}
+          }
+          
+          # Commodities
+          try:
+              # Gold
+              gold = ak.futures_zh_daily_sina(symbol="au2506")
+              data["commodities"]["GOLD"] = {
+                  "price": float(gold["close"].iloc[-1]),
+                  "prevClose": float(gold["close"].iloc[-2]),
+                  "source": "Sina Finance"
+              }
+              print(f"Gold: {gold['close'].iloc[-1]}")
+          except Exception as e:
+              print(f"Gold error: {e}")
+          
+          try:
+              # WTI Oil
+              wti = ak.futures_zh_daily_sina(symbol="cl2506")
+              data["commodities"]["WTI"] = {
+                  "price": float(wti["close"].iloc[-1]),
+                  "prevClose": float(wti["close"].iloc[-2]),
+                  "source": "Sina Finance"
+              }
+              print(f"WTI: {wti['close'].iloc[-1]}")
+          except Exception as e:
+              print(f"WTI error: {e}")
+          
+          try:
+              # Brent Oil
+              brent = ak.stock_zh_index_spot()
+              brent_data = ak.stock_zh_index_daily(symbol="BZ2306")
+              if not brent_data.empty:
+                  data["commodities"]["BRENT"] = {
+                      "price": float(brent_data["close"].iloc[-1]),
+                      "prevClose": float(brent_data["close"].iloc[-2]),
+                      "source": "Sina Finance"
+                  }
+          except Exception as e:
+              print(f"Brent error: {e}")
+          
+          # Indices
+          try:
+              # CSI300
+              csi = ak.stock_zh_index_daily(symbol="sh000300")
+              data["indices"]["CSI300"] = {
+                  "price": float(csi["close"].iloc[-1]),
+                  "prevClose": float(csi["close"].iloc[-2]),
+                  "source": "Tencent Finance"
+              }
+              print(f"CSI300: {csi['close'].iloc[-1]}")
+          except Exception as e:
+              print(f"CSI300 error: {e}")
+          
+          try:
+              # SPX
+              spx = ak.stock_us_index_spot()
+              spx_data = spx[spx['名称'] == '标普500']
+              if not spx_data.empty:
+                  price = float(spx_data['最新价'].iloc[0].replace(',', ''))
+                  data["indices"]["SPX"] = {
+                      "price": price,
+                      "prevClose": price * 0.99,
+                      "source": "Tencent Finance"
+                  }
+                  print(f"SPX: {price}")
+          except Exception as e:
+              print(f"SPX error: {e}")
+          
+          # Save data
+          with open('market_data.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+          
+          print("Data saved to market_data.json")
+          EOF
+          
+      - name: Update HTML with new data
+        run: |
+          python << 'EOF'
+          import json
+          import re
+          
+          # Read market data
+          with open('market_data.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+          
+          # Read HTML
+          with open('index.html', 'r', encoding='utf-8') as f:
+              html = f.read()
+          
+          # Update market data in HTML
+          # Create new script tag content
+          script_content = f'window.__MARKET_DATA__={json.dumps(data, ensure_ascii=False)};'
+          
+          # Replace existing script tag
+          pattern = r'<script id="market-data-inject">.*?</script>'
+          new_script = f'<script id="market-data-inject">{script_content}</script>'
+          html = re.sub(pattern, new_script, html, flags=re.DOTALL)
+          
+          # Save updated HTML
+          with open('index.html', 'w', encoding='utf-8') as f:
+              f.write(html)
+          
+          print("HTML updated with new data")
+          EOF
+          
+      - name: Commit and push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+          git add market_data.json index.html
+          git diff --staged --quiet || git commit -m "Update market data $(date +'%Y-%m-%d %H:%M')"
+          git push
