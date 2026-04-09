@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<script id="market-data-inject">window.__MARKET_DATA__={"timestamp":"2026-04-08T23:32:33.201501","isHoliday":false,"commodities":{"WTI":{"key":"WTI","name":"WTI","price":95.739,"change":-0.511,"prevClose":96.25,"changePct":-0.53,"source":"Sina Finance","isLastClose":false},"BRENT":{"key":"BRENT","name":"BRENT","price":95.496,"change":0.096,"prevClose":95.4,"changePct":0.1,"source":"Sina Finance","isLastClose":false},"GLD_PRICE":{"key":"GLD_PRICE","name":"GLD_PRICE","price":4774.54,"change":-2.66,"prevClose":4777.2,"changePct":-0.06,"source":"Sina Finance","isLastClose":false},"SLV_PRICE":{"key":"SLV_PRICE","name":"SLV_PRICE","price":75.272,"change":-0.143,"prevClose":75.415,"changePct":-0.19,"source":"Sina Finance","isLastClose":false},"NG":{"key":"NG","name":"NG","price":2.748,"change":-0.003,"prevClose":2.751,"changePct":-0.11,"source":"Sina Finance","isLastClose":false}},"indices":{"SPX":{"key":"SPX","name":"S&P 500","price":6757.0,"prevClose":6616.85,"change":140.15,"changePct":2.12,"source":"Tencent Finance","isLastClose":false},"CSI300":{"key":"CSI300","name":"CSI 300","price":4595.56,"prevClose":4440.62,"change":154.94,"changePct":3.49,"source":"Tencent Finance","isLastClose":false},"NDX":{"key":"NDX","name":"NASDAQ 100","price":24841.71,"prevClose":24202.37,"change":639.34,"changePct":2.64,"source":"Tencent Finance","isLastClose":false},"HSI":{"key":"HSI","name":"Hang Seng","price":25893.02,"prevClose":25116.53,"change":776.49,"changePct":3.09,"source":"Tencent Finance","isLastClose":false}},"macro":{"TNX":{"key":"TNX","name":"US 10Y Bond","price":0.0435,"source":"Fallback","type":"bond"},"VIX":{"key":"VIX","name":"VIX","price":27.04,"source":"Fallback","type":"index"}},"forex":{},"status":{"ok":true,"sources":["Sina Finance","Tencent Finance"],"note":"实时行情"}};</script>
+<script id="market-data-inject">window.__MARKET_DATA__={"timestamp":"2026-04-08T23:40:55.659077","isHoliday":false,"commodities":{"WTI":{"key":"WTI","name":"WTI","price":94.708,"change":-0.442,"prevClose":95.15,"changePct":-0.46,"source":"Sina Finance","isLastClose":false},"BRENT":{"key":"BRENT","name":"BRENT","price":95.024,"change":0.164,"prevClose":94.86,"changePct":0.17,"source":"Sina Finance","isLastClose":false},"GLD_PRICE":{"key":"GLD_PRICE","name":"GLD_PRICE","price":4780.28,"change":-4.12,"prevClose":4784.4,"changePct":-0.09,"source":"Sina Finance","isLastClose":false},"SLV_PRICE":{"key":"SLV_PRICE","name":"SLV_PRICE","price":75.829,"change":0.264,"prevClose":75.565,"changePct":0.35,"source":"Sina Finance","isLastClose":false},"NG":{"key":"NG","name":"NG","price":2.748,"change":-0.004,"prevClose":2.752,"changePct":-0.15,"source":"Sina Finance","isLastClose":false}},"indices":{"SPX":{"key":"SPX","name":"S&P 500","price":6765.64,"prevClose":6616.85,"change":148.79,"changePct":2.25,"source":"Tencent Finance","isLastClose":false},"CSI300":{"key":"CSI300","name":"CSI 300","price":4595.56,"prevClose":4440.62,"change":154.94,"changePct":3.49,"source":"Tencent Finance","isLastClose":false},"NDX":{"key":"NDX","name":"NASDAQ 100","price":24875.08,"prevClose":24202.37,"change":672.71,"changePct":2.78,"source":"Tencent Finance","isLastClose":false},"HSI":{"key":"HSI","name":"Hang Seng","price":25893.02,"prevClose":25116.53,"change":776.49,"changePct":3.09,"source":"Tencent Finance","isLastClose":false}},"macro":{"TNX":{"key":"TNX","name":"US 10Y Bond","price":0.0435,"source":"Fallback","type":"bond"},"VIX":{"key":"VIX","name":"VIX","price":27.04,"source":"Fallback","type":"index"}},"forex":{},"status":{"ok":true,"sources":["Sina Finance","Tencent Finance"],"note":"实时行情"}};</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global QuantPilot 2.0 · 主动晨会系统</title>
@@ -35,19 +35,19 @@ body {
 
 /* ===== RESPONSIVE - MOBILE ===== */
 @media (max-width: 768px) {
+    /* 改用 flex 布局，彻底解决 sidebar hidden 仍占 grid 坑位导致的 main=0 高度 bug */
     .shell {
-        grid-template-columns: 1fr !important;
-        grid-template-rows: 56px 1fr auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100vh !important;
+        overflow: hidden;
     }
     
     /* Mobile Topbar */
     .topbar {
+        flex-shrink: 0;
+        height: 56px !important;
         padding: 0 12px !important;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
     }
     .brand-logo { width: 32px !important; height: 32px !important; }
     .brand-name { font-size: 15px !important; }
@@ -62,17 +62,8 @@ body {
     /* Mobile Sidebar */
     .sidebar {
         display: none !important;
-        position: fixed;
-        top: 56px;
-        left: 0;
-        right: 0;
-        bottom: 60px;
-        z-index: 999;
-        background: var(--bg2);
-        padding: 12px !important;
-        overflow-y: auto;
     }
-    .sidebar.show { display: block !important; }
+    .sidebar.show { display: none !important; }
     
     /* Mobile Menu Toggle */
     .mobile-menu-btn {
@@ -86,11 +77,12 @@ body {
         color: var(--text);
     }
     
-    /* Mobile Main */
+    /* Mobile Main - 占据 topbar 和 bottom nav 之间的全部空间 */
     .main {
+        flex: 1 !important;
+        overflow-y: auto !important;
         padding: 12px !important;
-        margin-top: 56px;
-        margin-bottom: 60px;
+        -webkit-overflow-scrolling: touch;
     }
     
     /* Mobile Section */
@@ -1845,25 +1837,6 @@ body {
     </div>
   </div>
 
-  <!-- ===== MOBILE BOTTOM NAV ===== -->
-  <div class="mobile-bottom-nav">
-    <div class="mobile-nav-item active" onclick="switchSection('brief')">
-      <span>📋</span><span>晨报</span>
-    </div>
-    <div class="mobile-nav-item" onclick="switchSection('profile')">
-      <span>🎯</span><span>画像</span>
-    </div>
-    <div class="mobile-nav-item" onclick="switchSection('macro')">
-      <span>📈</span><span>宏观</span>
-    </div>
-    <div class="mobile-nav-item" onclick="switchSection('assets')">
-      <span>💼</span><span>配置</span>
-    </div>
-    <div class="mobile-nav-item" onclick="switchSection('agents')">
-      <span>🤖</span><span>AI</span>
-    </div>
-  </div>
-
   <!-- ===== SIDEBAR ===== -->
   <div class="sidebar">
     <div class="sidebar-section">
@@ -2649,6 +2622,25 @@ body {
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== MOBILE BOTTOM NAV (body fixed，不在 shell 内) ===== -->
+<div class="mobile-bottom-nav">
+  <div class="mobile-nav-item active" onclick="switchSection('brief')">
+    <span>📋</span><span>晨报</span>
+  </div>
+  <div class="mobile-nav-item" onclick="switchSection('profile')">
+    <span>🎯</span><span>画像</span>
+  </div>
+  <div class="mobile-nav-item" onclick="switchSection('macro')">
+    <span>📈</span><span>宏观</span>
+  </div>
+  <div class="mobile-nav-item" onclick="switchSection('assets')">
+    <span>💼</span><span>配置</span>
+  </div>
+  <div class="mobile-nav-item" onclick="switchSection('agents')">
+    <span>🤖</span><span>AI</span>
   </div>
 </div>
 
@@ -5234,13 +5226,14 @@ function switchSection(name) {
     )) el.classList.add('active');
   });
 
-  // 更新Mobile Bottom Nav
-  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+  // 更新Mobile Bottom Nav（只查.mobile-bottom-nav 内的项，避免与 desktop sidebar 混淆）
+  const mobileNavItems = document.querySelectorAll('.mobile-bottom-nav .mobile-nav-item');
+  mobileNavItems.forEach(el => el.classList.remove('active'));
   const mobileNavMap = {
-    'brief': 0, 'profile': 1, 'macro': 2, 'assets': 3, 'agents': 4, 'watchlist': 5
+    'brief': 0, 'profile': 1, 'macro': 2, 'assets': 3, 'agents': 4
   };
-  if (mobileNavMap.hasOwnProperty(name)) {
-    document.querySelectorAll('.mobile-nav-item')[mobileNavMap[name]]?.classList.add('active');
+  if (mobileNavMap.hasOwnProperty(name) && mobileNavItems[mobileNavMap[name]]) {
+    mobileNavItems[mobileNavMap[name]].classList.add('active');
   }
   
   // 如果切换到观察组合，渲染列表
