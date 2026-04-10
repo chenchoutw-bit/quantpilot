@@ -3875,7 +3875,7 @@ function generateEnhancedAnalysis(agentId, topic) {
 <span class="highlight">② 驱动因素</span>：地缘政治风险 + 全球央行购金需求 + 通胀预期<br>
 <span class="highlight">③ 关键阻力</span>：关注4700-4800美元心理关口<br>
 <span class="highlight">④ 风险提示</span>：美元强势反弹可能压制金价`,
-        evidence: `黄金: ${goldPrice}（${goldChg >= 0 ? '+' : ''}${goldChg?.toFixed(2)}%）| 白银: ${rawData.commodities?.SLV_PRICE?.price || 'N/A'}`
+        evidence: `黄金: ${goldPrice}（${goldChg >= 0 ? '+' : ''}${goldChg?.toFixed(2)}%）| 白银: ${marketData.SLV_PRICE?.price || 'N/A'}`
       };
     }
     if (t.includes('a股') || t.includes('沪深') || t.includes('上证') || t.includes('港股') || t.includes('恒生')) {
@@ -3887,15 +3887,15 @@ function generateEnhancedAnalysis(agentId, topic) {
 <span class="highlight">② 估值水平</span>：PE约15-16倍，处于历史中位偏上<br>
 <span class="highlight">③ 压力因素</span>：外部关税扰动 + 外资流向波动<br>
 <span class="highlight">④ 支撑因素</span>：国内政策加力预期 + ETF长期资金托底`,
-        evidence: `沪深300: ${csiPrice}（${csiChg >= 0 ? '+' : ''}${csiChg?.toFixed(2)}%）| 恒生: ${rawData.indices?.HSI?.price || 'N/A'}`
+        evidence: `沪深300: ${csiPrice}（${csiChg >= 0 ? '+' : ''}${csiChg?.toFixed(2)}%）| 恒生: ${marketData.HSI?.price || 'N/A'}`
       };
     }
     // 美股话题识别 - 标普500、纳斯达克、道琼斯
     if (t.includes('美股') || t.includes('标普') || t.includes('spx') || t.includes('sp500') || t.includes('纳斯达克') || t.includes('ndx') || t.includes('ndaq') || t.includes('道琼斯') || t.includes('dow')) {
-      const spxPrice = spx.price || rawData.indices?.SPX?.price || 0;
-      const spxChg = spx.changePct || rawData.indices?.SPX?.changePct || 0;
-      const ndxPrice = rawData.indices?.NDX?.price || 0;
-      const ndxChg = rawData.indices?.NDX?.changePct || 0;
+      const spxPrice = spx.price || marketData.SPX?.price || 0;
+      const spxChg = spx.changePct || marketData.SPX?.changePct || 0;
+      const ndxPrice = marketData.NDX?.price || 0;
+      const ndxChg = marketData.NDX?.changePct || 0;
       const vixVal = vix.price || 27;
       const vixLevel = vixVal > 30 ? '恐慌区间' : vixVal > 20 ? '正常区间' : '极度乐观';
       
@@ -3913,7 +3913,7 @@ function generateEnhancedAnalysis(agentId, topic) {
     
     // FOMC/美联储/降息加息话题
     if (t.includes('fomc') || t.includes('美联储') || t.includes('降息') || t.includes('加息') || t.includes('利率') || t.includes('鲍威尔')) {
-      const fedRate = rawData.macro?.TNX?.price || 0.0435; // 美债收益率作为利率参考
+      const fedRate = marketData.TNX?.price || 0.0435; // 美债收益率作为利率参考
       const rateLevel = fedRate > 0.05 ? '高位' : fedRate > 0.03 ? '中等' : '低位';
       return {
         verdict: fedRate > 0.04 ? 'bear' : 'bull',
@@ -3943,8 +3943,8 @@ function generateEnhancedAnalysis(agentId, topic) {
     
     // 原油/能源话题
     if (t.includes('原油') || t.includes('油价') || t.includes('能源') || t.includes('wti') || t.includes('布伦特') || t.includes('石油')) {
-      const wtiPrice = rawData.commodities?.WTI?.price || 0;
-      const wtiChg = rawData.commodities?.WTI?.changePct || 0;
+      const wtiPrice = marketData.WTI?.price || 0;
+      const wtiChg = marketData.WTI?.changePct || 0;
       return {
         verdict: wtiChg > 2 ? 'bear' : wtiChg < -2 ? 'bull' : 'neutral',
         score: wtiChg > 2 ? -2 : wtiChg < -2 ? 1 : 0,
@@ -3994,7 +3994,7 @@ function generateEnhancedAnalysis(agentId, topic) {
     const isFOMC = t.includes('fomc') || t.includes('美联储') || t.includes('降息') || t.includes('加息') || t.includes('利率') || t.includes('鲍威尔');
     
     if (isFOMC) {
-      const fedRate = rawData.macro?.TNX?.price || 0.0435;
+      const fedRate = marketData.TNX?.price || 0.0435;
       return {
         verdict: fedRate > 0.045 ? 'bear' : 'neutral',
         score: fedRate > 0.05 ? -1 : 0,
@@ -4008,18 +4008,19 @@ function generateEnhancedAnalysis(agentId, topic) {
     }
     
     if (isUSMarket) {
-      const spx = rawData.indices?.SPX || {};
-      const spxPrice = spx.price || 0;
-      const vix = rawData.macro?.VIX?.price || 27;
+      const spxData = marketData.SPX || {};
+      const spxPrice = spxData.price || 0;
+      const vixData = marketData.VIX || { price: 27 };
+      const vixPrice = vixData.price || 27;
       return {
-        verdict: vix > 25 ? 'bear' : 'neutral',
+        verdict: vixPrice > 25 ? 'bear' : 'neutral',
         score: 0,
         content: `<strong>🌐 宏观研究员分析（美股）</strong><br><br>
 <span class="highlight">① 估值水平</span>：标普500当前约${spxPrice.toLocaleString()}，估值处于历史高位区间<br>
 <span class="highlight">② 利率环境</span>：美联储维持利率，高利率对估值形成压制<br>
 <span class="highlight">③ 盈利预期</span>：企业盈利增速放缓，需警惕业绩不及预期风险<br>
 <span class="highlight">④ 配置建议</span>：均衡配置，注重防御性板块`,
-        evidence: `标普500: ${spxPrice.toLocaleString()} | VIX: ${vix}`
+        evidence: `标普500: ${spxPrice.toLocaleString()} | VIX: ${vixPrice}`
       };
     }
     return {
@@ -4038,7 +4039,7 @@ function generateEnhancedAnalysis(agentId, topic) {
     const t = topic.toLowerCase();
     const isUSMarket = t.includes('美股') || t.includes('标普') || t.includes('纳斯达克') || t.includes('ndx') || t.includes('道琼斯');
     const isFOMC = t.includes('fomc') || t.includes('美联储') || t.includes('降息') || t.includes('加息') || t.includes('利率');
-    const spx = rawData.indices?.SPX || {};
+    const spx = marketData.SPX || {};
     const spxPrice = spx.price || 0;
     const spxChg = spx.changePct || 0;
     
@@ -4086,34 +4087,34 @@ function generateEnhancedAnalysis(agentId, topic) {
     const t = topic.toLowerCase();
     const isUSMarket = t.includes('美股') || t.includes('标普') || t.includes('纳斯达克') || t.includes('ndx') || t.includes('道琼斯');
     const isFOMC = t.includes('fomc') || t.includes('美联储') || t.includes('降息') || t.includes('加息') || t.includes('利率');
-    const vix = rawData.macro?.VIX?.price || 27;
-    const spxChg = rawData.indices?.SPX?.changePct || 0;
+    const vixRisk = marketData.VIX?.price || 27;
+    const spxChgRisk = marketData.SPX?.changePct || 0;
     
     if (isFOMC) {
       return {
-        verdict: vix > 25 ? 'bear' : 'neutral',
-        score: vix > 30 ? -1 : 0,
+        verdict: vixRisk > 25 ? 'bear' : 'neutral',
+        score: vixRisk > 30 ? -1 : 0,
         content: `<strong>🛡️ 风控长分析（FOMC）</strong><br><br>
 <span class="highlight">① 风险提示</span>：FOMC会议前24小时市场通常波动加剧<br>
-<span class="highlight">② 仓位建议</span>：${vix > 25 ? '降低至50%' : '可维持70%'}<br>
+<span class="highlight">② 仓位建议</span>：${vixRisk > 25 ? '降低至50%' : '可维持70%'}<br>
 <span class="highlight">③ 对冲方案</span>：买入SPX看跌期权或VIX看涨期权<br>
 <span class="highlight">④ 操作纪律</span>：FOMC当天避免重仓隔夜`,
-        evidence: `VIX: ${vix} | War Index: ~60-65`
+        evidence: `VIX: ${vixRisk} | War Index: ~60-65`
       };
     }
     
     if (isUSMarket) {
-      const riskLevel = vix > 30 ? '高风险' : vix > 20 ? '中等风险' : '正常';
-      const position = vix > 30 ? '50%以下' : vix > 20 ? '60-70%' : '70-80%';
+      const riskLevel = vixRisk > 30 ? '高风险' : vixRisk > 20 ? '中等风险' : '正常';
+      const position = vixRisk > 30 ? '50%以下' : vixRisk > 20 ? '60-70%' : '70-80%';
       return {
-        verdict: vix > 25 ? 'bear' : 'neutral',
+        verdict: vixRisk > 25 ? 'bear' : 'neutral',
         score: 0,
         content: `<strong>🛡️ 风控长分析（美股）</strong><br><br>
-<span class="highlight">① 风险等级</span>：${riskLevel}，VIX ${vix}<br>
+<span class="highlight">① 风险等级</span>：${riskLevel}，VIX ${vixRisk}<br>
 <span class="highlight">② 仓位建议</span>：建议仓位 ${position}<br>
 <span class="highlight">③ 对冲工具</span>：VIX期权、SPX看跌期权保护<br>
 <span class="highlight">④ 止损建议</span>：单股/ETF亏损超过10%坚决止损`,
-        evidence: `VIX: ${vix} | 标普日涨跌: ${spxChg >= 0 ? '+' : ''}${spxChg?.toFixed(2)}%`
+        evidence: `VIX: ${vixRisk} | 标普日涨跌: ${spxChgRisk >= 0 ? '+' : ''}${spxChgRisk?.toFixed(2)}%`
       };
     }
     
@@ -4135,13 +4136,13 @@ function generateEnhancedAnalysis(agentId, topic) {
     const t = topic.toLowerCase();
     const isUSMarket = t.includes('美股') || t.includes('标普') || t.includes('纳斯达克') || t.includes('ndx') || t.includes('道琼斯');
     const isFOMC = t.includes('fomc') || t.includes('美联储') || t.includes('降息') || t.includes('加息') || t.includes('利率');
-    const vix = rawData.macro?.VIX?.price || 27;
-    const spxChg = rawData.indices?.SPX?.changePct || 0;
+    const vixCio = marketData.VIX?.price || 27;
+    const spxChgCio = marketData.SPX?.changePct || 0;
     
     if (isFOMC) {
-      const position = vix > 25 ? '50-60%' : '70%';
+      const position = vixCio > 25 ? '50-60%' : '70%';
       return {
-        verdict: vix > 30 ? 'bear' : 'neutral',
+        verdict: vixCio > 30 ? 'bear' : 'neutral',
         score: 0,
         position: position,
         action: '观望为主',
@@ -4150,20 +4151,20 @@ function generateEnhancedAnalysis(agentId, topic) {
 <span class="highlight">② 核心策略</span>：${position.includes('50') ? '减仓观望，等待靴子落地' : '可持股等待'}<br>
 <span class="highlight">③ 重点关注</span>：鲍威尔讲话措辞、点阵图变化<br>
 <span class="highlight">④ 风险提示</span>：FOMC结果公布后可能出现大幅波动，做好止损准备`,
-        evidence: `VIX: ${vix} | 仓位: ${position}`
+        evidence: `VIX: ${vixCio} | 仓位: ${position}`
       };
     }
     
     if (isUSMarket) {
-      const position = vix > 30 ? '50-60%' : vix > 20 ? '60-70%' : '70-80%';
-      const action = spxChg < -2 ? '分批建仓' : spxChg < 0 ? '逢低布局' : '持有待涨';
+      const position = vixCio > 30 ? '50-60%' : vixCio > 20 ? '60-70%' : '70-80%';
+      const action = spxChgCio < -2 ? '分批建仓' : spxChgCio < 0 ? '逢低布局' : '持有待涨';
       return {
-        verdict: spxChg < -1 ? 'bear' : spxChg > 1 ? 'bull' : 'neutral',
-        score: Math.round(spxChg / 5),
+        verdict: spxChgCio < -1 ? 'bear' : spxChgCio > 1 ? 'bull' : 'neutral',
+        score: Math.round(spxChgCio / 5),
         position: position,
         action: action,
         content: `<strong>🎯 CIO首席投资官综合研判（美股）</strong><br><br>
-<span class="highlight">① 市场评级</span>：震荡${spxChg < 0 ? '偏弱' : '偏强'}，VIX ${vix}，建议 ${position} 仓位<br>
+<span class="highlight">① 市场评级</span>：震荡${spxChgCio < 0 ? '偏弱' : '偏强'}，VIX ${vixCio}，建议 ${position} 仓位<br>
 <span class="highlight">② 核心策略</span>：${action}优质资产，注意高估值风险<br>
 <span class="highlight">③ 重点关注</span>：科技巨头业绩、美联储政策、通胀数据<br>
 <span class="highlight">④ 风险提示</span>：警惕加息预期升温导致估值回调`,
