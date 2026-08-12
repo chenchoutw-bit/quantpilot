@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-11T08:30:24.998456",
+  "timestamp": "2026-08-12T08:47:25.457257",
   "commodities": {
     "GOLD": {
       "price": 791.0,
@@ -9,8 +9,8 @@
   },
   "indices": {
     "CSI300": {
-      "price": 4702.025,
-      "prevClose": 4694.437,
+      "price": 4663.789,
+      "prevClose": 4702.025,
       "source": "Tencent Finance"
     }
   },
